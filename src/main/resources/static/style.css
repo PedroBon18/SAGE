@@ -1,0 +1,446 @@
+/* Importa a fonte "tech" */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+body {
+  font-family: 'Share Tech Mono', monospace; /* Fonte nova */
+  background-color: #0a192f; /* Fundo escuro */
+  color: #a8b2d1; /* Cor de texto clara */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Garante que o body ocupa a altura total */
+  height: 100vh; /* Mantém a regra original para compatibilidade visual */
+  overflow-x: hidden; /* NOVO: Previne rolagem horizontal */
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr; /* Layout de 3 colunas */
+  gap: 20px;
+  background: #112240; /* Fundo do painel */
+  border: 2px solid #64ffda; /* Borda "glowing" ciano */
+  border-radius: 0; /* CORRIGIDO: Remove o arredondamento para preencher os cantos */
+  padding: 20px; 
+  width: 100%; /* CORRIGIDO: Ocupa 100% da largura do body */
+  max-width: none; /* CORRIGIDO: Remove limitação de largura */
+  box-shadow: none; /* CORRIGIDO: Remove sombra */
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* --- Painel Central --- */
+.panel-center {
+  flex-direction: column; 
+  justify-content: flex-start; 
+  align-items: center;
+  border-left: 2px solid #1e3c72; 
+  border-right: 2px solid #1e3c72;
+  padding: 0 15px;
+  gap: 15px; 
+}
+
+/* NOVO: Estilo para o Contêiner do Gráfico de Linha na Coluna Central */
+.line-chart-container {
+    width: 90%; 
+    height: 300px; 
+    margin-top: 5px; 
+    /* Estilos do .chart-placeholder já são aplicados */
+}
+
+/* NOVO: Linha de navegação (para manter botões e foto na mesma linha) */
+.nav-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.photo-frame {
+  border: 3px solid #64ffda; /* Borda do hexágono */
+  clip-path: polygon(
+    25% 6.7%, 75% 6.7%, 
+    100% 50%, 75% 93.3%, 
+    25% 93.3%, 0% 50%
+  );
+  padding: 5px; /* Espaçamento para a borda */
+  margin: 0 15px; /* Margem entre botões e foto */
+}
+
+.photo {
+  width: 150px;
+  height: 150px;
+  background-size: cover;
+  background-position: center;
+  clip-path: polygon(
+    25% 6.7%, 75% 6.7%, 
+    100% 50%, 75% 93.3%, 
+    25% 93.3%, 0% 50%
+  );
+}
+
+/* Imagens (Corretas) */
+.photo.Aluno1 { background-image: url('img/Pedro.jpg'); }
+.photo.Aluno2 { background-image: url('img/aranha.jpg'); }
+.photo.Aluno3 { background-image: url('img/avatar_steam.jpg'); }
+.photo.AlunoPlaceholder {background-image: url('img/ADD_ALUNO.png');}
+
+/* Torna o frame da foto clicável */
+.photo-frame.clickable:hover {
+  border-color: #f9ff4d; /* Amarelo ao passar o mouse */
+  cursor: pointer;
+}
+.photo-frame.clickable:hover .photo {
+  opacity: 0.8; /* Leve transparência ao passar o mouse */
+}
+
+/* Estilização do Rank */
+#studentRank {
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff; /* Texto branco */
+    background: #64ffda; /* Fundo ciano (cor de destaque) */
+    padding: 8px 20px;
+    border-radius: 4px;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Sombra para destacar Rank */
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.5); /* Efeito neon */
+    margin-top: 15px; /* Espaço para separar do bloco de notas históricas */
+    min-width: 120px; /* Garante que o bloco não seja muito pequeno */
+    text-align: center;
+}
+
+.nav-button {
+  background: none;
+  border: 2px solid #64ffda;
+  color: #64ffda;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+.nav-button:hover {
+  background: rgba(100, 255, 218, 0.2);
+  transform: scale(1.1);
+}
+
+/* --- Painel Direito --- */
+.panel-right {
+  text-align: center;
+}
+
+h1#studentName {
+  font-size: 28px;
+  color: #ccd6f6;
+  margin: 10px 0 5px;
+  cursor: pointer;
+}
+h1#studentName:focus {
+    outline: 1px dashed #64ffda;
+    background: rgba(100, 255, 218, 0.05);
+    padding: 0 5px;
+}
+
+.student-id-large {
+  font-size: 72px; /* ID gigante */
+  font-weight: bold;
+  color: #64ffda; /* Cor destaque */
+  margin: 10px 0;
+}
+
+/* Barra de Média */
+.average-bar-container {
+  width: 90%;
+  background: #0a192f;
+  border: 1px solid #a8b2d1;
+  border-radius: 5px;
+  height: 25px;
+  position: relative;
+  margin: 10px auto;
+  overflow: hidden; 
+}
+.average-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4d4d 0%, #f9ff4d 50%, #4dff4d 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  width: 0%; /* Será definido pelo JS */
+}
+#studentAverage {
+  position: absolute;
+  left: 50%; 
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 14px;
+  mix-blend-mode: difference; 
+}
+
+/* Anotações, Metas e Feedback (Tema Escuro) */
+.editable-box {
+  background: #0e2038;
+  border: 1px dashed #495c80;
+  padding: 10px;
+  border-radius: 6px;
+  min-height: 60px;
+  cursor: text;
+  transition: background 0.3s, border 0.3s;
+  text-align: left;
+  width: 90%;
+  margin: 0 auto 20px;
+  outline: none;
+  white-space: pre-wrap;
+  color: #a8b2d1;
+}
+
+.editable-box:focus {
+  background: #112240;
+  border: 1px solid #64ffda;
+}
+
+.editable-box:empty:before {
+  content: attr(data-placeholder);
+  color: #5a73a8;
+  pointer-events: none;
+}
+
+/* Estilo para o Bloco de Alerta */
+#studentAlert {
+  width: 90%;
+  padding: 10px;
+  margin: 0 auto 20px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: bold;
+  /* display: none; <-- REMOVIDO */
+  border: 1px solid #f9ff4d; 
+  color: #f9ff4d;
+  background: rgba(249, 255, 77, 0.1);
+}
+
+/* Classe para esconder o Alerta quando estiver vazio (e não focado) */
+.alert-box:empty:not(:focus) {
+    border: 1px dashed transparent;
+    background: transparent;
+    color: #a8b2d1;
+    text-align: left;
+}
+.alert-box:empty:not(:focus):before {
+    content: attr(data-placeholder);
+    color: #5a73a8;
+    text-align: left;
+}
+.alert-box:empty:not(:focus):hover {
+    border: 1px dashed #495c80;
+}
+
+/* --- Painel Esquerdo --- */
+.chart-placeholder {
+  border: 2px dashed #495c80;
+  border-radius: 8px;
+  padding: 10px; 
+  text-align: center;
+  margin: 10px 0;
+  width: 90%; 
+  height: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #495c80;
+}
+.chart-placeholder canvas {
+    max-height: 100%; 
+}
+
+/* Lista de notas */
+#gradesList {
+  list-style: none; 
+  padding: 0;
+  margin-top: 20px;
+  width: 90%;
+}
+
+#gradesList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.grade-input {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #495c80;
+    background: #0e2038;
+    color: #a8b2d1;
+    border-radius: 4px;
+    text-align: center;
+}
+
+/*Estilos para o controle de Faltas */
+.frequency-controls {
+  width: 90%;
+  margin: 15px auto 0;
+  text-align: center;
+}
+
+.frequency-controls h3 {
+  margin-top: 5px; 
+}
+
+.frequency-controls label {
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+#studentAbsencesInput {
+  width: 70px;
+  padding: 5px;
+  border: 1px solid #495c80;
+  background: #0e2038;
+  color: #a8b2d1;
+  border-radius: 4px;
+  text-align: center;
+  font-family: 'Share Tech Mono', monospace; 
+  font-size: 16px;
+}
+
+/* NOVO: Estilos para a Edição de Notas Históricas */
+.historical-grades-input {
+    width: 90%;
+    padding: 10px;
+    border: 1px dashed #495c80;
+    border-radius: 6px;
+    background: #0e2038;
+    text-align: center;
+    margin-bottom: 5px; 
+}
+
+.historical-grades-input h4 {
+    margin: 0 0 10px 0;
+    color: #ccd6f6;
+}
+
+.historical-grades-input .grades-row {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.historical-input {
+    width: 50px;
+    padding: 3px;
+    margin-left: 5px;
+    border: 1px solid #64ffda;
+    background: #112240;
+    color: #a8b2d1;
+    border-radius: 4px;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace; 
+}
+
+/* --- Media Queries para Responsividade --- */
+
+@media (max-width: 1000px) {
+  body {
+    height: auto; 
+    min-height: 100vh;
+    padding: 20px 0; 
+    display: block; 
+  }
+  .container {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+    width: 90%;
+    border-radius: 12px; /* Reintroduz o arredondamento em telas pequenas */
+    box-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
+  }
+  .panel-center {
+    border-left: none;
+    border-right: none;
+    border-top: 2px solid #1e3c72;
+    border-bottom: 2px solid #1e3c72;
+    padding: 20px 15px; 
+    
+    /* Layout Vertical para Mobile */
+    flex-direction: column; 
+    justify-content: flex-start; /* Alinha ao topo em tablets */
+    gap: 10px; 
+  }
+  .line-chart-container {
+    height: 250px;
+    order: -1; /* Força a ir para o topo do painel central */
+    margin-bottom: 20px;
+  }
+  .nav-row {
+    order: 1;
+    margin-bottom: 0;
+  }
+
+  .historical-grades-input .grades-row {
+      flex-direction: column; /* Empilha inputs em telas pequenas */
+  }
+}
+
+@media (max-width: 600px) {
+  h1#studentName {
+    font-size: 24px;
+  }
+  .student-id-large {
+    font-size: 56px; 
+  }
+  .photo-frame,
+  .photo {
+    width: 120px;
+    height: 120px;
+  }
+  .nav-button {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+  .chart-placeholder {
+    height: 200px; 
+  }
+  .grade-input,
+  #studentAbsencesInput {
+    width: 50px;
+  }
+  .editable-box {
+    min-height: 40px;
+  }
+}
+
+/* --- Media Queries para Controle de Zoom (Escala) --- */
+
+/* Escala Padrão para Notebooks Comuns (90% - Telas entre 1001px e 1440px) */
+@media (min-width: 1001px) and (max-width: 1440px) {
+    body {
+        transform: scale(0.9);
+        transform-origin: top center; 
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+    }
+}
+
+/* Escala para Desktops Grandes/Ultra-Wide (90% - Telas > 1440px) */
+@media (min-width: 1441px) {
+    body {
+        transform: scale(0.9); /* ATUALIZADO para 90% */
+        transform-origin: top center; 
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+    }
+}

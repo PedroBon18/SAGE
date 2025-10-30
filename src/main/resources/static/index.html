@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduView - HUD</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="shortcut icon" href="img/favicon/favicon.ico" type="image/x-icon">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+</head>
+<body>
+  <div class="container">
+    
+    <div class="panel panel-left">
+      <h3>Estatísticas</h3>
+      <div class="chart-placeholder" id="pie-chart-placeholder">
+        <canvas id="doughnutChart"></canvas>
+      </div>
+      <div class="chart-placeholder" id="radar-chart-placeholder">
+        <canvas id="radarChart"></canvas>
+      </div>
+      <ul id="gradesList"></ul>
+
+    </div>
+
+      
+    <div class="panel panel-center">
+      <div class="chart-placeholder line-chart-container">
+        <canvas id="lineChart"></canvas>
+      </div>
+      
+      <div class="nav-row">
+        <button id="prev" class="nav-button">&lt;</button>
+        <div class="photo-frame" id="photoFrame">
+          <div class="photo" id="photo"></div>
+        </div>
+        <button id="next" class="nav-button">&gt;</button>
+      </div>
+
+      <input type="file" id="fileInput" accept="image/*" style="display: none;" />
+
+      <div class="historical-grades-input">
+        <h4>Notas por Trimestre</h4>
+        <div class="grades-row">
+          <label>1º Trim.: <input type="number" id="gradeTrim1" min="0" max="10" step="0.1" class="historical-input"></label>
+          <label>2º Trim.: <input type="number" id="gradeTrim2" min="0" max="10" step="0.1" class="historical-input"></label>
+          <label>3º Trim.: <input type="number" id="gradeTrim3" min="0" max="10" step="0.1" class="historical-input"></label>
+        </div>
+        
+        <div id="studentRank"></div>
+      </div>
+    </div>
+
+    <div class="panel panel-right">
+      <h1 id="studentName" contenteditable="true"></h1> 
+      <div class="student-id-large">
+        <span id="studentID"></span>
+      </div>
+      
+      <h3>Média Geral</h3>
+      <div class="average-bar-container">
+        <div class="average-bar" id="studentAverageBar"></div>
+        <span id="studentAverage"></span>
+      </div>
+
+      <h3>Anotações</h3>
+      <div id="notes" class="editable-box" contenteditable="true" data-placeholder="Digite sobre o aluno"></div>
+
+      <h3>Alerta</h3>
+      <div id="studentAlert" class="editable-box alert-box" contenteditable="true" data-placeholder="Adicionar Alerta Rápido..."></div>
+
+      <h3>Metas</h3>
+      <div id="studentGoals" class="editable-box" contenteditable="true" data-placeholder="Defina metas para o aluno..."></div>
+      
+      <h3>Feedback</h3>
+      <div id="studentFeedback" class="editable-box" contenteditable="true" data-placeholder="Registre o último feedback..."></div>
+
+      <div class="frequency-controls">
+        <h3>Frequência</h3>
+        <label for="studentAbsencesInput">Nº de Faltas:</label>
+        <input type="number" id="studentAbsencesInput" min="0">
+      </div>
+
+    </div>
+
+  </div>
+  <script src="main.js"></script>
+</body>
+</html>
