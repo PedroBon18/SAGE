@@ -70,9 +70,9 @@ async function handleCriarNovoAluno() {
         metas: '',
         feedback: '',
         alerta: '',
-        classeFoto: 'Aluno1', // Foto padrão
+        classeFoto: 'DefaultProfile', 
         historicoMedia: [0, 0, 0],
-        fotoBase64: null // Campo novo
+        fotoBase64: null
     };
 
     try {

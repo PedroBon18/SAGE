@@ -45,7 +45,7 @@ body {
   gap: 15px; 
 }
 
-/* NOVO: Estilo para o Contêiner do Gráfico de Linha na Coluna Central */
+/* Estilo para o Contêiner do Gráfico de Linha na Coluna Central */
 .line-chart-container {
     width: 90%; 
     height: 300px; 
@@ -53,7 +53,7 @@ body {
     /* Estilos do .chart-placeholder já são aplicados */
 }
 
-/* NOVO: Linha de navegação (para manter botões e foto na mesma linha) */
+/* Linha de navegação (para manter botões e foto na mesma linha) */
 .nav-row {
     display: flex;
     flex-direction: row;
@@ -86,9 +86,7 @@ body {
 }
 
 /* Imagens (Corretas) */
-.photo.Aluno1 { background-image: url('img/Pedro.jpg'); }
-.photo.Aluno2 { background-image: url('img/aranha.jpg'); }
-.photo.Aluno3 { background-image: url('img/avatar_steam.jpg'); }
+.photo.DefaultProfile { background-image: url('img/DefaultProfile.png'); } /* NOVO PADRÃO: Foto usada como base */
 .photo.AlunoPlaceholder {background-image: url('img/ADD_ALUNO.png');}
 
 /* Torna o frame da foto clicável */
@@ -130,6 +128,25 @@ body {
 .nav-button:hover {
   background: rgba(100, 255, 218, 0.2);
   transform: scale(1.1);
+}
+
+/* --- NOVO: Estilo da Logo Central ---  */
+.logo-container {
+  width: 80%; 
+  max-width: 250px; 
+  margin: 5px 0; 
+  opacity: 1; /* <-- ALTERADO PARA 1 (sempre visível) */
+  /* A transição e o hover foram removidos */
+}
+
+#projectLogo {
+  width: 100%;
+  height: auto; 
+}
+
+#projectLogo {
+  width: 100%;
+  height: auto; /* Mantém a proporção da imagem */
 }
 
 /* --- Painel Direito --- */
