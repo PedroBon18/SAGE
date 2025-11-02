@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.sage.engine.model.Professor;
-import com.sage.engine.model.Turma; // IMPORTAR ISTO
+import com.sage.engine.model.Turma;
 import com.sage.engine.repository.ProfessorRepository;
-import com.sage.engine.repository.TurmaRepository; // IMPORTAR ISTO
+import com.sage.engine.repository.TurmaRepository; 
 
 @SpringBootApplication
 public class SageApplication {
@@ -21,7 +21,7 @@ public class SageApplication {
 	@Bean
 	CommandLineRunner initDatabase(
 			ProfessorRepository professorRepository, 
-			TurmaRepository turmaRepository, // ADICIONAR ISTO
+			TurmaRepository turmaRepository,
 			PasswordEncoder passwordEncoder
 	) {
 		return args -> {

@@ -36,7 +36,7 @@ const alunoPlaceholder = {
 // --- Seletores de elementos ---
 const nomeAlunoElemento = document.getElementById('studentName');
 const matriculaAlunoElemento = document.getElementById('studentID');
-const alunoTurmaElemento = document.getElementById('alunoTurma'); // <-- NOVO SELETOR
+const alunoTurmaElemento = document.getElementById('alunoTurma'); 
 const mediaAlunoElemento = document.getElementById('studentAverage');
 const listaNotasElemento = document.getElementById('gradesList');
 const anotacoesElemento = document.getElementById('notes');
@@ -75,6 +75,52 @@ const doughnutCtx = document.getElementById('doughnutChart')?.getContext('2d');
 const lineCtx = document.getElementById('lineChart')?.getContext('2d'); 
 
 // --- FUNÇÕES DE API ---
+
+// --- LÓGICA PARA APAGAR ALUNO ---
+async function handleApagarAluno(alunoId, nomeAluno) {
+    if (alunoId === null || alunoId === undefined) return;
+    
+    if (!confirm(`Tem certeza que deseja apagar permanentemente o aluno "${nomeAluno}"? Esta ação não pode ser desfeita.`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/${alunoId}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            alert(`Aluno ${nomeAluno} apagado com sucesso!`);
+            
+            // 1. Fecha o modal de detalhes (se estiver aberto)
+            const detalhesModal = document.getElementById('detalhes-modal');
+            if (detalhesModal) {
+                 detalhesModal.style.display = 'none';
+            }
+            
+            // 2. Remove o aluno da lista e ajusta o índice
+            listaDeAlunos = listaDeAlunos.filter(a => a.id !== alunoId);
+            
+            // 3. Garante que o índice atual é válido
+            if (indiceAtual >= listaDeAlunos.length - 1) { 
+                indiceAtual = 0;
+            }
+            
+            // 4. Recarrega a lista de alunos da turma atual (para refletir a eliminação)
+            carregarAlunosDaAPI(turmaAtual); 
+
+        } else if (response.status === 403) {
+            alert("Acesso negado. Você não tem permissão para apagar alunos desta instituição.");
+        } else {
+            throw new Error(`Falha ao apagar aluno. Status: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Erro ao apagar aluno:', error);
+        alert('Erro ao processar a eliminação.');
+    }
+}
+// ---------------------------------
+
 
 // 1. Função de inicialização
 async function initApp() {
@@ -259,11 +305,7 @@ function renderizarAluno(indice) {
 
     nomeAlunoElemento.textContent = aluno.nome;
     matriculaAlunoElemento.textContent = aluno.matricula;
-    
-    // --- LÓGICA DE TURMA ADICIONADA ---
-    alunoTurmaElemento.textContent = `Turma: ${aluno.turma || 'N/A'}`; 
-    // ----------------------------------
-    
+    alunoTurmaElemento.textContent = `Turma: ${aluno.turma || 'N/A'}`; // Preenche a turma
     listaNotasElemento.innerHTML = ''; 
     listaFrequenciaElemento.innerHTML = ''; 
     rankElemento.textContent = `Rank ${aluno.rank}`;
@@ -292,17 +334,17 @@ function renderizarAluno(indice) {
     gradeTrim2Input.value = t2 !== undefined ? t2 : '';
     gradeTrim3Input.value = t3 !== undefined ? t3 : '';
     
-    // ATUALIZADO: Popula o input de turma
+    // Popula o input de turma
     if (turmaInputElemento) {
         turmaInputElemento.value = aluno.turma || turmaAtual;
     }
 
-    // --- LÓGICA DE PERMISSÃO (Sem alteração) ---
+    // --- LÓGICA DE PERMISSÃO ---
     const isCoordenador = usuarioCargo === 'COORDENADOR';
     const podeEditarCamposGerais = !ehPlaceholder && (isCoordenador || usuarioCargo === 'PROFESSOR');
     const podeEditarNotas = (materia) => !ehPlaceholder && (isCoordenador || (usuarioCargo === 'PROFESSOR' && materia === usuarioMateria));
     const podeEditarFaltas = (materia) => !ehPlaceholder && (isCoordenador || (usuarioCargo === 'PROFESSOR' && materia === usuarioMateria));
-    // -----------------------------------------------------------
+    // ----------------------------
 
     // --- Recria os inputs de NOTA (Com Filtro) ---
     const notasMap = aluno.notas || {};
@@ -499,6 +541,7 @@ function addBlurSaveListener(element, property) {
         }
     });
 }
+// --- LIGAÇÃO DOS LISTENERS DE SALVAMENTO DE CAMPOS DE TEXTO ---
 addBlurSaveListener(nomeAlunoElemento, 'nome');
 addBlurSaveListener(anotacoesElemento, 'anotacao');
 addBlurSaveListener(alertaElemento, 'alerta');
@@ -519,7 +562,7 @@ document.getElementById('next').addEventListener('click', () => {
     renderizarAluno(indiceAtual);
 });
 
-// Event listener do seletor de turma (dropdown) foi REMOVIDO
+// Event listener do seletor de turma 
 
 photoFrameElement.addEventListener('click', () => {
     const aluno = listaDeAlunos[indiceAtual];
@@ -545,6 +588,18 @@ fileInputElement.addEventListener('change', (event) => {
     };
     reader.readAsDataURL(file);
 });
+
+// --- Event Listener para o botão de apagar no Modal de Detalhes ---
+const btnApagarDetalhes = document.getElementById('detalhes-btn-apagar');
+if (btnApagarDetalhes) {
+    btnApagarDetalhes.addEventListener('click', () => {
+        const alunoAtual = listaDeAlunos[indiceAtual];
+        if (alunoAtual && alunoAtual.id) {
+            handleApagarAluno(alunoAtual.id, alunoAtual.nome);
+        }
+    });
+}
+
 
 
 // --- ATUALIZADO: Inicializa a aplicação ---

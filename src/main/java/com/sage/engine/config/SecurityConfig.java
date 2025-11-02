@@ -48,39 +48,47 @@ public class SecurityConfig {
         
         http
             .authorizeHttpRequests(auth -> auth
-                // 1. Permite o acesso público a TODAS as páginas estáticas
+                // 1. Permite o acesso público a ficheiros estáticos E ao LOGOUT
                 .requestMatchers(
                     "/h2-console/**", 
-                    "/login.html",   // Página de Login
-                    "/login.css",
-                    "/login.js",
                     "/api/login",
                     "/img/**",
-                    "/turmas.html",  // Página de Turmas
+                    "/error",        // Página de erro
+
+                    // --- Ficheiros de Login ---
+                    "/login.html",   
+                    "/login.css",
+                    "/login.js",
+                    
+                    // --- Ficheiros de Turmas/Dashboard ---
+                    "/turmas.html",  
                     "/turmas.js",
-                    "/index.html",   // <-- ADICIONADO: A tua dashboard principal
-                    "/main.js",      // <-- ADICIONADO: O script de /index.html
-                    "/style.css"     // <-- ADICIONADO: O CSS de /index.html
+                    "/index.html",   
+                    "/main.js",      
+                    "/style.css",
+                    
+                    "/logout" // Acesso permitido
                 ).permitAll()
                 
-                // --- 2. NOVAS REGRAS (AGORA CORRETAS) ---
-                // Todos autenticados podem LISTAR (GET) turmas e ver a info do usuário
+                // --- 2. REGRAS DE API ---
                 .requestMatchers(HttpMethod.GET, "/api/turmas", "/api/usuario/info").authenticated()
-                // Apenas COORDENADORES podem CRIAR (POST)
                 .requestMatchers(HttpMethod.POST, "/api/turmas").hasRole("COORDENADOR")
-                // Apenas COORDENADORES podem APAGAR (DELETE)
                 .requestMatchers(HttpMethod.DELETE, "/api/turmas/**").hasRole("COORDENADOR")
                 
-                // 3. Exige autenticação para o resto (incluindo /api/alunos/**)
+                // 3. Exige autenticação para o resto
                 .anyRequest().authenticated() 
             )
             
             .formLogin(form -> form.disable()) 
 
+            // --- CORREÇÃO DA SESSÃO DE LOGOUT ---
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login.html")
+                .logoutSuccessUrl("/login.html") 
+                .invalidateHttpSession(true) // 1. Garante que a sessão é destruída
+                .deleteCookies("JSESSIONID") // 2. Remove a cookie de sessão
             )
+            // ------------------------------------
             
             .securityContext(context -> context
                 .securityContextRepository(securityContextRepository)

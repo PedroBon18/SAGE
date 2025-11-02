@@ -7,13 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException; 
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping; // Import necessário
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam; // IMPORTAR ISTO
+import org.springframework.web.bind.annotation.RequestParam; 
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sage.engine.model.Aluno;
@@ -112,6 +113,33 @@ public class AlunoController {
                 .orElse(ResponseEntity.notFound().<Aluno>build());
     }
     
+    /**
+     * Apaga um aluno pelo ID, com verificação de instituição.
+     * Ex: DELETE /api/alunos/123
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> apagarAluno(@PathVariable Long id, Authentication authentication) {
+        
+        Professor professorLogado = getProfessorLogado(authentication);
+        String instituicaoProfessor = professorLogado.getInstituicao();
+
+        return alunoRepository.findById(id)
+                .map(alunoExistente -> {
+                    
+                    // SEGURANÇA: Verifica se o aluno pertence à instituição do professor
+                    if (!alunoExistente.getInstituicao().equals(instituicaoProfessor)) {
+                        // Resposta 403 (Proibido) se não pertencer
+                        return ResponseEntity.status(403).<Void>build(); 
+                    }
+                    
+                    alunoRepository.delete(alunoExistente);
+                    // Resposta 200 (OK) sem corpo
+                    return ResponseEntity.ok().<Void>build();
+                })
+                // Resposta 404 se o ID não for encontrado
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     private Professor getProfessorLogado(Authentication authentication) {
         String username = authentication.getName();
         return professorRepository.findByUsername(username)

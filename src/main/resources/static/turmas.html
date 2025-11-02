@@ -93,27 +93,14 @@
             margin: 24px auto 0; /* centraliza e dá espaçamento superior */
             padding: 8px 0;
         }
-        /* Responsive adjustments */
-        @media (max-width: 480px) {
-            .sair-botao,
-            #nova-turma-form .login-button {
-                width: 90% !important;
-                margin: 12px auto 0 !important;
-                padding: 10px 0;
+
+        /* Responsividade para telas pequenas */
+        @media screen and (max-width: 480px) {
+            #nova-turma-form .login-button,
+            .sair-botao {
+                width: 90%; /* Em telas pequenas, botões ocupam 90% da largura */
+                max-width: 280px; /* Limita a largura máxima */
             }
-            .login-container {
-                width: calc(100% - 40px) !important;
-                max-width: 600px;
-                padding: 0 10px;
-            }
-        }
-        @media (min-width: 481px) and (max-width: 800px) {
-            .sair-botao,
-            #nova-turma-form .login-button {
-                width: 160px;
-                margin: 12px auto 0;
-            }
-            .login-container { width: 85%; max-width: 700px; }
         }
     </style>
 </head>
@@ -139,10 +126,9 @@
             </form>
         </div>
         
-          <a href="/logout" class="login-button sair-botao" id="botao-logout"
-              style="text-decoration: none; text-align: center; box-sizing: border-box;">
-              Sair (Logout)
-          </a>
+                <a href="/logout" class="sair-botao login-button">
+            Sair (Logout)
+        </a>
     </div>
 
     <script src="turmas.js"></script>

@@ -55,6 +55,34 @@ body {
   align-items: center;
 }
 
+/* --- ESTILOS DO MODAL DE DETALHES --- */
+
+/* Estilo para o botão de apagar (Cor vermelha de perigo) */
+.modal-button-delete {
+    background-color: #4a0e0e; /* Vermelho escuro no fundo */
+    color: #c74646; /* Vermelho claro no texto */
+    border: 1px solid #c74646;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.modal-button-delete:hover {
+    background-color: #c74646; /* Inverte as cores ao passar o rato */
+    color: #0a192f; /* Dark Blue (Cor do seu fundo) */
+}
+
+/* Garante que os botões de editar e apagar fiquem lado a lado */
+.detalhes-botoes-acao {
+    display: flex;
+    gap: 10px; /* Espaço entre os botões */
+    /* margin-left: auto; Empurra os botões para a direita */
+}
+
 /* --- Painel Central --- */
 .panel-center {
   flex-direction: column; 
