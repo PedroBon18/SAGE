@@ -1,6 +1,27 @@
 /* Importa a fonte "tech" */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
+/* Estilo do Botão Voltar */
+.back-to-turmas {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    color: #64ffda;
+    text-decoration: none;
+    background: #112240;
+    padding: 8px 12px;
+    border: 1px solid #495c80;
+    border-radius: 6px;
+    z-index: 100;
+    transition: all 0.3s ease;
+}
+.back-to-turmas:hover {
+    border-color: #64ffda;
+    color: #fff;
+}
+
 body {
   font-family: 'Share Tech Mono', monospace; /* Fonte nova */
   background-color: #0a192f; /* Fundo escuro */
@@ -157,6 +178,51 @@ h1#studentName:focus {
     outline: 1px dashed #64ffda;
     background: rgba(100, 255, 218, 0.05);
     padding: 0 5px;
+}
+
+/* --- NOVO: Estilo do Seletor de Turma --- */
+.turma-selector-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 90%;
+    margin: 5px auto 10px;
+    padding: 10px;
+    background: #0e2038;
+    border: 1px dashed #495c80;
+    border-radius: 6px;
+}
+
+.turma-selector-container label {
+    font-size: 16px;
+    color: #ccd6f6;
+}
+
+.turma-select {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    background: #112240;
+    color: #64ffda;
+    border: 1px solid #64ffda;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.turma-input {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    width: 80px;
+    padding: 5px;
+    border: 1px solid #495c80;
+    background: #0e2038;
+    color: #a8b2d1;
+    border-radius: 4px;
+    text-align: center;
+}
+.turma-input:focus {
+    outline: none;
+    border-color: #64ffda;
 }
 
 .student-id-large {

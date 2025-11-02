@@ -2,7 +2,7 @@ package com.sage.engine.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod; // <--- ESTE É O IMPORT QUE DEVE ESTAR A FALTAR
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -11,12 +11,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository; 
 
 import com.sage.engine.repository.ProfessorRepository;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -57,12 +55,21 @@ public class SecurityConfig {
                     "/login.css",
                     "/login.js",
                     "/api/login",
-                    // --- LINHAS NOVAS ADICIONADAS AQUI ---
-                    "/img/**", // Permite todas as imagens
-                    "/img/favicon/favicon.ico" // Garante o favicon
-                    // ------------------------------------
+                    "/img/**",
+                    "/turmas.html",
+                    "/turmas.js"
                 ).permitAll()
-                // 2. Exige autenticação para o resto
+                
+                // --- 2. NOVAS REGRAS CORRIGIDAS ---
+                // Todos autenticados podem LISTAR turmas e VER a info do usuário
+                .requestMatchers(HttpMethod.GET, "/api/turmas", "/api/usuario/info").authenticated()
+                // Apenas COORDENADORES podem CRIAR (POST)
+                .requestMatchers(HttpMethod.POST, "/api/turmas").hasRole("COORDENADOR")
+                // Apenas COORDENADORES podem APAGAR (DELETE)
+                .requestMatchers(HttpMethod.DELETE, "/api/turmas/**").hasRole("COORDENADOR")
+                // ----------------------------------------------
+                
+                // 3. Exige autenticação para o resto
                 .anyRequest().authenticated() 
             )
             
@@ -76,13 +83,20 @@ public class SecurityConfig {
             .securityContext(context -> context
                 .securityContextRepository(securityContextRepository)
             )
-
+            
             .exceptionHandling(e -> e
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.sendRedirect("/login.html");
+                })
             )
             
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/h2-console/**", "/api/login", "/api/alunos/**") 
+                .ignoringRequestMatchers(
+                    "/h2-console/**", 
+                    "/api/login", 
+                    "/api/alunos/**", 
+                    "/api/turmas/**"
+                ) 
             )
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.sameOrigin())

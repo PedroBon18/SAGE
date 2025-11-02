@@ -5,18 +5,18 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.Authentication; // <-- Confirma este import
+import org.springframework.security.core.userdetails.UsernameNotFoundException; // <-- Confirma este import
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sage.engine.model.Professor; // IMPORTAR ISTO
+import com.sage.engine.model.Professor; // <-- Confirma este import
 import com.sage.engine.repository.ProfessorRepository;
 
 @RestController
-@RequestMapping("/api/usuario")
+@RequestMapping("/api/usuario") // <-- Isto define a base do URL
 @CrossOrigin(origins = "*")
 public class ProfessorController {
 
@@ -26,7 +26,7 @@ public class ProfessorController {
     /**
      * Endpoint para o front-end descobrir o CARGO e a MATÉRIA do usuário logado.
      */
-    @GetMapping("/info") // URL MUDOU (era /materia)
+    @GetMapping("/info") // <-- Isto define o fim do URL. Total: /api/usuario/info
     public ResponseEntity<Map<String, String>> getInfoDoUsuario(Authentication authentication) {
         if (authentication == null) {
             return ResponseEntity.status(401).build(); 
@@ -37,9 +37,6 @@ public class ProfessorController {
         Professor professor = professorRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Professor não encontrado: " + username));
 
-        // Retorna um JSON com o cargo e a matéria
-        // Ex: { "cargo": "PROFESSOR", "materia": "Matemática" }
-        // Ex: { "cargo": "COORDENADOR", "materia": null }
         Map<String, String> userInfo = new HashMap<>();
         userInfo.put("cargo", professor.getCargo());
         userInfo.put("materia", professor.getMateria()); 

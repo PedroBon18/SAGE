@@ -1,30 +1,31 @@
 document.getElementById('login-form').addEventListener('submit', async function(event) {
-    event.preventDefault(); // Impede o envio padrão
+    event.preventDefault(); 
 
     const form = event.target;
     const formData = new FormData(form);
     
-    // Converte os dados do formulário para um objeto JSON
     const loginData = {};
     formData.forEach((value, key) => {
-        // Trata da matéria: se for vazia, envia 'null'
+        // (Mantive a tua lógica de login aqui, está correta)
         if (key === 'materia' && value === '') {
             loginData[key] = null;
+        } else if (key === 'username') {
+             loginData[key] = value.trim(); // Boa prática
         } else {
             loginData[key] = value;
         }
     });
 
-    // Garante que o Cargo esteja em maiúsculas
     if (loginData.cargo) {
         loginData.cargo = loginData.cargo.toUpperCase();
     }
 
     const messageContainer = document.getElementById('message-container');
-    messageContainer.innerHTML = ''; // Limpa mensagens antigas
+    messageContainer.innerHTML = ''; 
 
     try {
-        const response = await fetch('/api/login', { // A nossa nova API de login
+        // 1. Tenta fazer o login
+        const response = await fetch('/api/login', { 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -32,14 +33,19 @@ document.getElementById('login-form').addEventListener('submit', async function(
             body: JSON.stringify(loginData)
         });
 
+        // 2. Se o login tiver sucesso...
         if (response.ok) {
-            // Sucesso! O back-end criou a sessão.
-            // Redireciona para a página principal.
+
+            // ================== MUDANÇA DO TESTE ==================
+            // Vamos redirecionar para o index.html (página segura)
+            // em vez do turmas.html (página com bug).
             window.location.href = '/index.html'; 
+            // ======================================================
+
         } else {
-            // Erro vindo do back-end
+            // Se o login falhar (ex: 401 Senha errada), mostra o erro
             const errorText = await response.text();
-            messageContainer.innerHTML = `<div class="error-message">${errorText}</div>`;
+            messageContainer.innerHTML = `<div class="error-message">${errorText || 'Usuário ou senha inválidos.'}</div>`;
         }
     } catch (error) {
         console.error('Erro ao tentar login:', error);

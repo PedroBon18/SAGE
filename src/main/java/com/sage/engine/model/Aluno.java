@@ -58,10 +58,14 @@ public class Aluno {
     @Column(name = "aulas_totais")
     private Map<String, Integer> aulasTotaisPorMateria;
 
-    // --- NOVO CAMPO DE INSTITUIÇÃO ---
     @Column(nullable = false)
     private String instituicao;
-    // ----------------------------------
+
+    // --- CAMPO DE TURMA ATUALIZADO ---
+    // Guardamos apenas o NOME da turma.
+    @Column(nullable = false)
+    private String turma; // Ex: "1A", "1B", "2A"
+    // ---------------------------
 
     public Aluno() {}
 
@@ -97,7 +101,10 @@ public class Aluno {
     public Map<String, Integer> getAulasTotaisPorMateria() { return aulasTotaisPorMateria; }
     public void setAulasTotaisPorMateria(Map<String, Integer> aulasTotaisPorMateria) { this.aulasTotaisPorMateria = aulasTotaisPorMateria; }
 
-    // --- GETTER E SETTER DA INSTITUIÇÃO ---
     public String getInstituicao() { return instituicao; }
     public void setInstituicao(String instituicao) { this.instituicao = instituicao; }
+    
+    // --- GETTER E SETTER DA TURMA ---
+    public String getTurma() { return turma; }
+    public void setTurma(String turma) { this.turma = turma; }
 }

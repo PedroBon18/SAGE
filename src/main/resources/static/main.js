@@ -6,15 +6,17 @@ let listaDeAlunos = [];
 let indiceAtual = 0;
 const API_URL = '/api/alunos'; 
 
-// --- Variáveis globais para guardar info do usuário ---
-let usuarioCargo = null;  // Ex: "PROFESSOR" ou "COORDENADOR"
-let usuarioMateria = null; // Ex: "Matemática" (ou null se for Coordenador)
-
+// --- Variáveis globais ---
+let usuarioCargo = null;  
+let usuarioMateria = null;
+let turmaAtual = null; // Guarda o NOME da turma vindo do URL
+// ----------------------------------------------------------------
 
 const alunoPlaceholder = {
     nome: 'Adicionar Aluno',
     matricula: '????',
     media: 0, 
+    turma: '', 
     notas: { 'Matemática': 0, 'Português': 0, 'História': 0, 'Geografia': 0, 'Inglês': 0, 'Ciências': 0 },
     faltasPorMateria: { 'Matemática': 0, 'Português': 0, 'História': 0, 'Geografia': 0, 'Inglês': 0, 'Ciências': 0 },
     aulasTotaisPorMateria: { 'Matemática': 50, 'Português': 50, 'História': 40, 'Geografia': 40, 'Inglês': 30, 'Ciências': 40 },
@@ -28,7 +30,7 @@ const alunoPlaceholder = {
     fotoBase64: null,
     instituicao: null 
 };
-
+// --------------------------
 
 
 // --- Seletores de elementos ---
@@ -50,14 +52,15 @@ const rankElemento = document.getElementById('studentRank');
 const photoFrameElement = document.getElementById('photoFrame'); 
 const fileInputElement = document.getElementById('fileInput'); 
 
-// --- Seletores para os Filtros ---
+// --- Seletores de Filtros ---
 const freqFilterContainer = document.getElementById('frequencyFilterContainer');
 const freqFilterCheckboxes = document.getElementById('frequencyFilterCheckboxes');
-
-// --- Seletores do Filtro de Notas ---
 const gradesFilterContainer = document.getElementById('gradesFilterContainer');
 const gradesFilterCheckboxes = document.getElementById('gradesFilterCheckboxes');
 
+// --- Seletor de Input de Turma ---
+const turmaInputElemento = document.getElementById('studentTurmaInput');
+// ------------------------------------
 
 // Variáveis globais para os Gráficos
 let radarChart;
@@ -67,8 +70,29 @@ const radarCtx = document.getElementById('radarChart')?.getContext('2d');
 const doughnutCtx = document.getElementById('doughnutChart')?.getContext('2d');
 const lineCtx = document.getElementById('lineChart')?.getContext('2d'); 
 
-// --- FUNÇÕES DE API --- (Sem alterações)
+// --- FUNÇÕES DE API ---
 
+// 1. ATUALIZADO: Função de inicialização
+async function initApp() {
+    // Pega o nome da turma do URL (ex: ?turma=1A)
+    const params = new URLSearchParams(window.location.search);
+    turmaAtual = params.get('turma');
+
+    if (!turmaAtual) {
+        // Se nenhuma turma foi passada, volta para a tela de seleção
+        alert("Nenhuma turma selecionada!");
+        window.location.href = '/turmas.html';
+        return;
+    }
+    
+    // Define o placeholder para já ter a turma correta
+    alunoPlaceholder.turma = turmaAtual;
+
+    await buscarDadosUsuario();
+}
+
+
+// 2. Busca os dados (Cargo e Matéria) do usuário logado
 async function buscarDadosUsuario() {
     try {
         const response = await fetch('/api/usuario/info'); 
@@ -78,21 +102,35 @@ async function buscarDadosUsuario() {
         }
         if (!response.ok) throw new Error('Falha ao buscar dados do usuário.');
         const dados = await response.json(); 
+        
         usuarioCargo = dados.cargo ? dados.cargo.toUpperCase() : null; 
         usuarioMateria = dados.materia; 
+        
         console.log(`Usuário logado. Cargo: ${usuarioCargo}, Matéria: ${usuarioMateria || 'N/A'}`);
-        carregarAlunosDaAPI();
+
+        // 3. Carrega os alunos da turma vinda do URL
+        carregarAlunosDaAPI(turmaAtual);
+
     } catch (error) {
         console.error('Erro ao buscar dados do usuário:', error);
     }
 }
 
+
+// 3. ATUALIZADO: Função para CRIAR um novo aluno
 async function handleCriarNovoAluno() {
-    console.log("Iniciando criação de novo aluno...");
+    if (!turmaAtual) {
+        alert("Erro: A turma atual não está definida.");
+        return;
+    }
+    
+    console.log(`Iniciando criação de novo aluno na turma ${turmaAtual}...`);
+
     const novoAlunoPadrao = {
         nome: "Novo Aluno",
         matricula: `MAT-${Math.floor(Math.random() * 9000) + 1000}`, 
         media: 0,
+        turma: turmaAtual, // Define a turma atual no novo aluno
         notas: { 'Matemática': 0, 'Português': 0, 'História': 0, 'Geografia': 0, 'Inglês': 0, 'Ciências': 0 },
         faltasPorMateria: { 'Matemática': 0, 'Português': 0, 'História': 0, 'Geografia': 0, 'Inglês': 0, 'Ciências': 0 },
         aulasTotaisPorMateria: { 'Matemática': 50, 'Português': 50, 'História': 40, 'Geografia': 40, 'Inglês': 30, 'Ciências': 40 },
@@ -100,31 +138,40 @@ async function handleCriarNovoAluno() {
         classeFoto: 'DefaultProfile', 
         historicoMedia: [0, 0, 0], fotoBase64: null
     };
+
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(API_URL, { // POST /api/alunos
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(novoAlunoPadrao),
         });
+
         if (!response.ok) throw new Error('Falha ao criar novo aluno.');
+
         const alunoSalvo = await response.json(); 
         console.log("Aluno salvo no BD:", alunoSalvo);
+        
         listaDeAlunos.pop(); 
         listaDeAlunos.push(alunoSalvo); 
         listaDeAlunos.push(alunoPlaceholder); 
+        
         indiceAtual = listaDeAlunos.length - 2; 
         renderizarAluno(indiceAtual);
+
         nomeAlunoElemento.focus();
         document.execCommand('selectAll', false, null); 
+
     } catch (error) {
         console.error('Erro ao criar novo aluno:', error);
     }
 }
 
+
+// 4. Função para salvar atualizações no back-end
 async function salvarAtualizacoesAluno(aluno) {
     if (aluno.matricula === '????' || !aluno.id) return;
     try {
-        const response = await fetch(`${API_URL}/${aluno.id}`, {
+        const response = await fetch(`${API_URL}/${aluno.id}`, { // PUT /api/alunos/{id}
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(aluno), 
@@ -141,24 +188,41 @@ async function salvarAtualizacoesAluno(aluno) {
     }
 }
 
-async function carregarAlunosDaAPI() {
+
+// 5. ATUALIZADO: Função para carregar dados da API (recebe o nome da turma)
+async function carregarAlunosDaAPI(turmaNome) {
+    if (!turmaNome) {
+        listaDeAlunos = [alunoPlaceholder];
+        indiceAtual = 0;
+        calcularRanking(); 
+        if (!radarChart) inicializarGraficos(); 
+        renderizarAluno(indiceAtual);
+        return;
+    }
+    
     try {
-        const response = await fetch(API_URL); 
+        const response = await fetch(`${API_URL}?turma=${encodeURIComponent(turmaNome)}`); 
         if (!response.ok) throw new Error('Erro ao buscar dados da API');
+        
         listaDeAlunos = await response.json(); 
+        
         if(listaDeAlunos.length === 0) {
-            console.log('Nenhum aluno encontrado para esta instituição. Exibindo placeholder.');
+            console.log(`Nenhum aluno encontrado para a turma ${turmaNome}.`);
         }
+        
         listaDeAlunos.push(alunoPlaceholder);
         indiceAtual = 0; 
+        
         calcularRanking(); 
-        inicializarGraficos();
+        if (!radarChart) inicializarGraficos(); 
         renderizarAluno(indiceAtual);
+
     } catch (error) {
         console.error('Falha ao carregar alunos:', error);
     }
 }
 
+// -------------------------------
 
 // Funções de Ranking e Gráficos (Sem alterações)
 function calcularRanking() {
@@ -195,12 +259,11 @@ function renderizarAluno(indice) {
     listaFrequenciaElemento.innerHTML = ''; 
     rankElemento.textContent = `Rank ${aluno.rank}`;
     
-    // ---Limpa os filtros ---
+    // Limpa os filtros
     freqFilterContainer.style.display = 'none';
     freqFilterCheckboxes.innerHTML = '';
     gradesFilterContainer.style.display = 'none';
     gradesFilterCheckboxes.innerHTML = '';
-
 
     // Lógica da Foto
     fotoElemento.className = 'photo'; 
@@ -219,38 +282,38 @@ function renderizarAluno(indice) {
     gradeTrim1Input.value = t1 !== undefined ? t1 : '';
     gradeTrim2Input.value = t2 !== undefined ? t2 : '';
     gradeTrim3Input.value = t3 !== undefined ? t3 : '';
+    
+    // ATUALIZADO: Popula o input de turma
+    turmaInputElemento.value = aluno.turma || turmaAtual;
 
     // --- LÓGICA DE PERMISSÃO (Sem alteração) ---
     const isCoordenador = usuarioCargo === 'COORDENADOR';
     const podeEditarCamposGerais = !ehPlaceholder && (isCoordenador || usuarioCargo === 'PROFESSOR');
     const podeEditarNotas = (materia) => !ehPlaceholder && (isCoordenador || (usuarioCargo === 'PROFESSOR' && materia === usuarioMateria));
     const podeEditarFaltas = (materia) => !ehPlaceholder && (isCoordenador || (usuarioCargo === 'PROFESSOR' && materia === usuarioMateria));
-
+    // -----------------------------------------------------------
 
     // --- Recria os inputs de NOTA (Com Filtro) ---
     const notasMap = aluno.notas || {};
-    for (let materia in notasMap) {
+    const materiasBase = Object.keys(notasMap).length > 0 ? notasMap : alunoPlaceholder.notas; 
+    
+    for (let materia in materiasBase) {
         
-        // 1. Cria o Filtro (para todos, exceto placeholder)
         if (!ehPlaceholder) {
-            gradesFilterContainer.style.display = 'block'; // Mostra o container
-            
+            gradesFilterContainer.style.display = 'block'; 
             const filterLi = document.createElement('li');
             const filterCheckbox = document.createElement('input');
             filterCheckbox.type = 'checkbox';
-            filterCheckbox.checked = true; // Começa marcado
+            filterCheckbox.checked = true; 
             filterCheckbox.id = `filter-grade-${materia}`;
             filterCheckbox.setAttribute('data-materia-filtro', materia);
-            
             const filterLabel = document.createElement('label');
             filterLabel.htmlFor = `filter-grade-${materia}`;
             filterLabel.textContent = materia;
-            
             filterLi.appendChild(filterCheckbox);
             filterLi.appendChild(filterLabel);
             gradesFilterCheckboxes.appendChild(filterLi);
 
-            // Adiciona o evento para esconder/mostrar
             filterCheckbox.addEventListener('change', (e) => {
                 const materiaSelecionada = e.target.getAttribute('data-materia-filtro');
                 const itemDaLista = document.querySelector(`#gradesList li[data-materia="${materiaSelecionada}"]`);
@@ -260,19 +323,16 @@ function renderizarAluno(indice) {
             });
         }
 
-        // 2. Cria o item da lista de Notas
         const itemLista = document.createElement('li');
-        itemLista.setAttribute('data-materia', materia); // Atributo para o filtro
-        
+        itemLista.setAttribute('data-materia', materia); 
         const rotuloMateria = document.createElement('span');
         rotuloMateria.textContent = materia;
-
         const inputNota = document.createElement('input');
         inputNota.type = 'number';
         inputNota.min = 0;
         inputNota.max = 10;
         inputNota.step = 0.1;
-        inputNota.value = notasMap[materia];
+        inputNota.value = notasMap[materia] || 0; // Padrão 0
         inputNota.classList.add('grade-input'); 
 
         if (!podeEditarNotas(materia)) {
@@ -294,38 +354,31 @@ function renderizarAluno(indice) {
         listaNotasElemento.appendChild(itemLista);
     }
 
-
     // --- Recria os inputs de FALTA (Com Filtro) ---
     const faltasMap = aluno.faltasPorMateria || {};
     const aulasMap = aluno.aulasTotaisPorMateria || {};
-    const materiasBase = aluno.notas || {}; 
 
     for (let materia in materiasBase) { 
         
         const deveMostrarFalta = isCoordenador || (usuarioCargo === 'PROFESSOR' && materia === usuarioMateria);
 
-        if (faltasMap.hasOwnProperty(materia) && deveMostrarFalta) { 
+        if (deveMostrarFalta) { 
             
-            // Cria o filtro (só para Coordenador)
             if (isCoordenador && !ehPlaceholder) {
                 freqFilterContainer.style.display = 'block'; 
-                
                 const filterLi = document.createElement('li');
                 const filterCheckbox = document.createElement('input');
                 filterCheckbox.type = 'checkbox';
                 filterCheckbox.checked = true; 
                 filterCheckbox.id = `filter-freq-${materia}`;
                 filterCheckbox.setAttribute('data-materia-filtro', materia);
-                
                 const filterLabel = document.createElement('label');
                 filterLabel.htmlFor = `filter-freq-${materia}`;
                 filterLabel.textContent = materia;
-                
                 filterLi.appendChild(filterCheckbox);
                 filterLi.appendChild(filterLabel);
                 freqFilterCheckboxes.appendChild(filterLi);
 
-                // Adiciona o evento
                 filterCheckbox.addEventListener('change', (e) => {
                     const materiaSelecionada = e.target.getAttribute('data-materia-filtro');
                     const itemDaLista = document.querySelector(`#frequencyList li[data-materia="${materiaSelecionada}"]`);
@@ -335,19 +388,17 @@ function renderizarAluno(indice) {
                 });
             }
 
-            // Cria o item da lista de Frequência
             const itemLista = document.createElement('li');
             itemLista.setAttribute('data-materia', materia); 
 
             const rotuloMateria = document.createElement('span');
             rotuloMateria.textContent = materia;
-
             const inputFalta = document.createElement('input');
             inputFalta.type = 'number';
             inputFalta.min = 0;
             const maxAulas = aulasMap[materia] || 50; 
             inputFalta.max = maxAulas;
-            inputFalta.value = faltasMap[materia];
+            inputFalta.value = faltasMap[materia] || 0; // Padrão 0
             inputFalta.classList.add('grade-input'); 
 
             if (!podeEditarFaltas(materia)) {
@@ -370,7 +421,6 @@ function renderizarAluno(indice) {
         }
     }
 
-
     // Popula campos gerais
     anotacoesElemento.textContent = aluno.anotacao || '';
     metasElemento.textContent = aluno.metas || '';
@@ -385,13 +435,16 @@ function renderizarAluno(indice) {
     const inputsHistorico = document.querySelectorAll('.historical-input');
     inputsHistorico.forEach(input => input.disabled = !podeEditarCamposGerais);
     
+    // Coordenador pode editar a turma, professor não.
+    turmaInputElemento.disabled = !isCoordenador || ehPlaceholder;
+    
     const editaveis = document.querySelectorAll('#studentName, #notes, #studentAlert, #studentGoals, #studentFeedback');
     editaveis.forEach(caixa => caixa.contentEditable = podeEditarCamposGerais);
 }
 // --- FIM DO RENDERIZAR ---
 
 
-// --- Event Listeners (Sem alteração) ---
+// --- Event Listeners ---
 function handleHistoricalGradeChange(inputElement, trimestreIndex) {
     const aluno = listaDeAlunos[indiceAtual];
     if (!aluno || aluno.matricula === '????') return; 
@@ -413,7 +466,14 @@ function addBlurSaveListener(element, property) {
     element.addEventListener('blur', () => {
         const alunoAtual = listaDeAlunos[indiceAtual];
         if (!alunoAtual || alunoAtual.matricula === '????') return;
-        let novoTexto = element.textContent.trim();
+        
+        let novoTexto;
+        if (element.isContentEditable) {
+            novoTexto = element.textContent.trim();
+        } else {
+            novoTexto = element.value.trim();
+        }
+        
         if (novoTexto !== alunoAtual[property]) {
             alunoAtual[property] = novoTexto;
             salvarAtualizacoesAluno(alunoAtual); 
@@ -431,6 +491,7 @@ addBlurSaveListener(anotacoesElemento, 'anotacao');
 addBlurSaveListener(alertaElemento, 'alerta');
 addBlurSaveListener(metasElemento, 'metas');
 addBlurSaveListener(feedbackElemento, 'feedback');
+addBlurSaveListener(turmaInputElemento, 'turma'); // Listener para o input de turma
 
 
 document.getElementById('prev').addEventListener('click', () => {
@@ -441,6 +502,8 @@ document.getElementById('next').addEventListener('click', () => {
     indiceAtual = (indiceAtual + 1) % listaDeAlunos.length;
     renderizarAluno(indiceAtual);
 });
+
+// Event listener do seletor de turma (dropdown) foi REMOVIDO
 
 photoFrameElement.addEventListener('click', () => {
     const aluno = listaDeAlunos[indiceAtual];
@@ -468,5 +531,5 @@ fileInputElement.addEventListener('change', (event) => {
 });
 
 
-// --- Inicializa a aplicação ---
-buscarDadosUsuario();
+// --- ATUALIZADO: Inicializa a aplicação ---
+initApp();

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam; // IMPORTAR ISTO
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sage.engine.model.Aluno;
@@ -29,27 +30,40 @@ public class AlunoController {
     private AlunoRepository alunoRepository;
 
     @Autowired
-    private ProfessorRepository professorRepository; // NECESSÁRIO PARA SABER A INSTITUIÇÃO
+    private ProfessorRepository professorRepository;
 
     /**
-     * Retorna apenas os alunos da instituição do professor logado.
+     * Retorna os alunos da instituição E TURMA especificadas.
+     * Ex: GET /api/alunos?turma=1A
      */
     @GetMapping
-    public List<Aluno> listarTodosAlunos(Authentication authentication) {
+    public List<Aluno> listarTodosAlunos(
+            @RequestParam String turma, // Exige o parâmetro "turma" (o nome da turma)
+            Authentication authentication) {
+        
         Professor professorLogado = getProfessorLogado(authentication);
-        // Filtra os alunos pela instituição do professor
-        return alunoRepository.findAllByInstituicao(professorLogado.getInstituicao());
+        
+        // Filtra pela instituição (segurança) E pela turma (filtro do usuário)
+        return alunoRepository.findAllByInstituicaoAndTurma(
+            professorLogado.getInstituicao(), 
+            turma
+        );
     }
     
     /**
-     * Cria um novo aluno, definindo automaticamente a instituição.
+     * Cria um novo aluno.
+     * A instituição é definida pelo professor.
+     * A turma (string) deve vir no objeto JSON.
      */
     @PostMapping
     public Aluno criarNovoAluno(@RequestBody Aluno novoAluno, Authentication authentication) {
         Professor professorLogado = getProfessorLogado(authentication);
         
-        // Define a instituição do novo aluno como a mesma do professor que o está criando
         novoAluno.setInstituicao(professorLogado.getInstituicao());
+
+        if (novoAluno.getTurma() == null || novoAluno.getTurma().isEmpty()) {
+            throw new IllegalArgumentException("A turma é obrigatória para criar um novo aluno.");
+        }
 
         if (novoAluno.getFaltasPorMateria() == null) {
             novoAluno.setFaltasPorMateria(new java.util.HashMap<>());
@@ -61,7 +75,7 @@ public class AlunoController {
     }
 
     /**
-     * Atualiza um aluno (garante que o professor só edite alunos da sua instituição).
+     * Atualiza um aluno.
      */
     @PutMapping("/{id}")
     public ResponseEntity<Aluno> atualizarAluno(@PathVariable Long id, @RequestBody Aluno alunoAtualizado, Authentication authentication) {
@@ -72,14 +86,11 @@ public class AlunoController {
         return alunoRepository.findById(id)
                 .map(alunoExistente -> {
                     
-                    // Verificação de segurança: O professor pode editar este aluno?
                     if (!alunoExistente.getInstituicao().equals(instituicaoProfessor)) {
-                        // Se o aluno for de outra escola, retorna "Não autorizado"
-                        
-                        // --- CORREÇÃO AQUI (no .build()) ---
                         return ResponseEntity.status(403).<Aluno>build(); 
                     }
-
+                    
+                    // Atualiza todos os campos
                     alunoExistente.setNome(alunoAtualizado.getNome());
                     alunoExistente.setMatricula(alunoAtualizado.getMatricula());
                     alunoExistente.setMedia(alunoAtualizado.getMedia());
@@ -93,18 +104,14 @@ public class AlunoController {
                     alunoExistente.setFotoBase64(alunoAtualizado.getFotoBase64());
                     alunoExistente.setFaltasPorMateria(alunoAtualizado.getFaltasPorMateria());
                     alunoExistente.setAulasTotaisPorMateria(alunoAtualizado.getAulasTotaisPorMateria());
-                    // A instituição do aluno não muda
+                    alunoExistente.setTurma(alunoAtualizado.getTurma()); // Atualiza a turma
 
                     Aluno salvo = alunoRepository.save(alunoExistente);
                     return ResponseEntity.ok(salvo);
                 })
-                // --- CORREÇÃO AQUI (no .build()) ---
                 .orElse(ResponseEntity.notFound().<Aluno>build());
     }
     
-    /**
-     * Método utilitário para buscar o Professor logado a partir da autenticação.
-     */
     private Professor getProfessorLogado(Authentication authentication) {
         String username = authentication.getName();
         return professorRepository.findByUsername(username)

@@ -39,13 +39,11 @@
             transform: translateY(-5px);
         }
         
-        /*  ALTERAÇÃO NO ESTILO DO FORM */
-        /* Mudamos de 'display: flex' (lado a lado) 
-           para 'flex-direction: column' (empilhado) */
+        /* Estilo para o formulário empilhado */
         #nova-turma-form {
             display: flex;
-            flex-direction: column; /* : Empilha os itens */
-            gap: 10px;             /* Mantém o espaço de 10px entre eles */
+            flex-direction: column; 
+            gap: 10px;             
             margin-top: 20px;
         }
 
@@ -96,18 +94,17 @@
         <div id="container-criar-turma">
             <hr style="border-color: #495c80; margin: 20px 0;">
             <h3 style="color: #ccd6f6; margin-bottom: 10px;">Gestão de Turmas</h3>
-
             <form id="nova-turma-form">
                 <input type="text" id="nova-turma-nome" class="login-input" placeholder="Nome da Nova Turma (ex: 3C)" required>
                 <button type="submit" class="login-button">Criar</button>
             </form>
-            </div>
+        </div>
         
-        <a href="/logout" class="login-button" 
+        <a href="/logout" class="login-button" id="botao-logout"
            style="text-decoration: none; text-align: center; width: 100%; margin-top: 30px; box-sizing: border-box;">
            Sair (Logout)
         </a>
-    </div>
+        </div>
 
     <script src="turmas.js"></script>
 </body>
