@@ -6,10 +6,10 @@ let listaDeAlunos = [];
 let indiceAtual = 0;
 const API_URL = '/api/alunos'; 
 
-// --- ATUALIZADO: Variáveis globais para guardar info do usuário ---
+// --- Variáveis globais para guardar info do usuário ---
 let usuarioCargo = null;  // Ex: "PROFESSOR" ou "COORDENADOR"
 let usuarioMateria = null; // Ex: "Matemática" (ou null se for Coordenador)
-// ----------------------------------------------------------------
+
 
 const alunoPlaceholder = {
     nome: 'Adicionar Aluno',
@@ -26,12 +26,12 @@ const alunoPlaceholder = {
     historicoMedia: [0, 0, 0],
     id: null,
     fotoBase64: null,
-    instituicao: null // Adicionado para consistência do modelo
+    instituicao: null 
 };
-// --------------------------
 
 
-// Seletores de elementos (sem alteração)
+
+// --- Seletores de elementos ---
 const nomeAlunoElemento = document.getElementById('studentName');
 const matriculaAlunoElemento = document.getElementById('studentID');
 const mediaAlunoElemento = document.getElementById('studentAverage');
@@ -50,7 +50,16 @@ const rankElemento = document.getElementById('studentRank');
 const photoFrameElement = document.getElementById('photoFrame'); 
 const fileInputElement = document.getElementById('fileInput'); 
 
-// Variáveis globais para os Gráficos (sem alteração)
+// --- Seletores para os Filtros ---
+const freqFilterContainer = document.getElementById('frequencyFilterContainer');
+const freqFilterCheckboxes = document.getElementById('frequencyFilterCheckboxes');
+
+// --- Seletores do Filtro de Notas ---
+const gradesFilterContainer = document.getElementById('gradesFilterContainer');
+const gradesFilterCheckboxes = document.getElementById('gradesFilterCheckboxes');
+
+
+// Variáveis globais para os Gráficos
 let radarChart;
 let doughnutChart;
 let lineChart; 
@@ -58,47 +67,28 @@ const radarCtx = document.getElementById('radarChart')?.getContext('2d');
 const doughnutCtx = document.getElementById('doughnutChart')?.getContext('2d');
 const lineCtx = document.getElementById('lineChart')?.getContext('2d'); 
 
-// --- FUNÇÕES DE API ---
+// --- FUNÇÕES DE API --- (Sem alterações)
 
-// ATUALIZADO: Busca os dados (Cargo e Matéria) do usuário logado
 async function buscarDadosUsuario() {
     try {
-        // 1. MUDANÇA: O endpoint agora é /info
         const response = await fetch('/api/usuario/info'); 
-        
         if (response.status === 401) {
-            // Se não estiver logado, vai para a página de login
-            window.location.href = '/login.html'; // Garante que é .html
+            window.location.href = '/login.html'; 
             return;
         }
-        
-        if (!response.ok) {
-            throw new Error('Falha ao buscar dados do usuário.');
-        }
-
-        const dados = await response.json(); // Espera { "cargo": "...", "materia": "..." }
-        
-        // 2. MUDANÇA: Armazena o cargo e a matéria
-        usuarioCargo = dados.cargo ? dados.cargo.toUpperCase() : null; // Garante "PROFESSOR" ou "COORDENADOR"
+        if (!response.ok) throw new Error('Falha ao buscar dados do usuário.');
+        const dados = await response.json(); 
+        usuarioCargo = dados.cargo ? dados.cargo.toUpperCase() : null; 
         usuarioMateria = dados.materia; 
-        
         console.log(`Usuário logado. Cargo: ${usuarioCargo}, Matéria: ${usuarioMateria || 'N/A'}`);
-
-        // 3. Carrega os alunos (agora a API de alunos vai filtrar pela instituição)
         carregarAlunosDaAPI();
-
     } catch (error) {
         console.error('Erro ao buscar dados do usuário:', error);
     }
 }
 
-// ATUALIZADO: Função para CRIAR um novo aluno
 async function handleCriarNovoAluno() {
     console.log("Iniciando criação de novo aluno...");
-
-    // Nota: Não precisamos de enviar a 'instituicao' aqui.
-    // O AlunoController no Back-end já define a instituição
-    // com base no usuário que está a fazer o pedido.
     const novoAlunoPadrao = {
         nome: "Novo Aluno",
         matricula: `MAT-${Math.floor(Math.random() * 9000) + 1000}`, 
@@ -106,49 +96,33 @@ async function handleCriarNovoAluno() {
         notas: { 'Matemática': 0, 'Português': 0, 'História': 0, 'Geografia': 0, 'Inglês': 0, 'Ciências': 0 },
         faltasPorMateria: { 'Matemática': 0, 'Português': 0, 'História': 0, 'Geografia': 0, 'Inglês': 0, 'Ciências': 0 },
         aulasTotaisPorMateria: { 'Matemática': 50, 'Português': 50, 'História': 40, 'Geografia': 40, 'Inglês': 30, 'Ciências': 40 },
-        anotacao: '',
-        metas: '',
-        feedback: '',
-        alerta: '',
+        anotacao: '', metas: '', feedback: '', alerta: '',
         classeFoto: 'DefaultProfile', 
-        historicoMedia: [0, 0, 0],
-        fotoBase64: null
-        // 'instituicao' é definida no Back-end
+        historicoMedia: [0, 0, 0], fotoBase64: null
     };
-
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(novoAlunoPadrao),
         });
-
         if (!response.ok) throw new Error('Falha ao criar novo aluno.');
-
         const alunoSalvo = await response.json(); 
         console.log("Aluno salvo no BD:", alunoSalvo);
-
         listaDeAlunos.pop(); 
         listaDeAlunos.push(alunoSalvo); 
         listaDeAlunos.push(alunoPlaceholder); 
-        
         indiceAtual = listaDeAlunos.length - 2; 
         renderizarAluno(indiceAtual);
-
         nomeAlunoElemento.focus();
         document.execCommand('selectAll', false, null); 
-
     } catch (error) {
         console.error('Erro ao criar novo aluno:', error);
     }
 }
 
-
-// Função para salvar atualizações no back-end (sem alteração)
 async function salvarAtualizacoesAluno(aluno) {
-    if (aluno.matricula === '????' || !aluno.id) {
-        return;
-    }
+    if (aluno.matricula === '????' || !aluno.id) return;
     try {
         const response = await fetch(`${API_URL}/${aluno.id}`, {
             method: 'PUT',
@@ -156,10 +130,7 @@ async function salvarAtualizacoesAluno(aluno) {
             body: JSON.stringify(aluno), 
         });
         if (!response.ok) {
-             // Se o back-end retornar 403 (Proibido), exibe um alerta
-            if(response.status === 403) {
-                alert("Erro: Não tem permissão para editar este aluno.");
-            }
+            if(response.status === 403) alert("Erro: Não tem permissão para editar este aluno.");
             throw new Error('Falha ao salvar dados do aluno.');
         }
         console.log(`Aluno ${aluno.nome} (ID: ${aluno.id}) salvo com sucesso!`);
@@ -170,38 +141,26 @@ async function salvarAtualizacoesAluno(aluno) {
     }
 }
 
-
-// Função para carregar dados da API (sem alteração)
 async function carregarAlunosDaAPI() {
     try {
-        const response = await fetch(API_URL); // Esta API agora é filtrada pelo back-end
+        const response = await fetch(API_URL); 
         if (!response.ok) throw new Error('Erro ao buscar dados da API');
-        
         listaDeAlunos = await response.json(); 
-        
-        // Se a lista estiver vazia (nenhum aluno na instituição), adiciona o placeholder
-        // Se houver alunos, o placeholder é adicionado no final
         if(listaDeAlunos.length === 0) {
             console.log('Nenhum aluno encontrado para esta instituição. Exibindo placeholder.');
         }
         listaDeAlunos.push(alunoPlaceholder);
-        
-        // Define o índice inicial
         indiceAtual = 0; 
-        
         calcularRanking(); 
         inicializarGraficos();
         renderizarAluno(indiceAtual);
-
     } catch (error) {
         console.error('Falha ao carregar alunos:', error);
     }
 }
 
-// -------------------------------
 
-
-// Função para calcular o ranking (sem alteração)
+// Funções de Ranking e Gráficos (Sem alterações)
 function calcularRanking() {
     const alunosReais = listaDeAlunos.filter(a => a.matricula !== '????');
     const alunosOrdenados = [...alunosReais].sort((a, b) => b.media - a.media);
@@ -211,69 +170,20 @@ function calcularRanking() {
     const placeholder = listaDeAlunos.find(a => a.matricula === '????');
     if (placeholder) placeholder.rank = 'N/A';
 }
-
-// Configurações dos Gráficos (sem alteração)
-const radarConfig = {
-    type: 'radar',
-    data: { labels: [], datasets: [{ label: 'Notas', data: [], backgroundColor: 'rgba(100, 255, 218, 0.2)', borderColor: '#64ffda', pointBackgroundColor: '#64ffda', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#64ffda', borderWidth: 2, fill: true }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, }, scales: { r: { angleLines: { color: '#495c80' }, grid: { color: '#495c80' }, pointLabels: { color: '#ccd6f6', font: { size: 14 } }, suggestedMin: 0, suggestedMax: 10, ticks: { backdropColor: '#112240', color: '#a8b2d1', stepSize: 2 } } } }
-};
-const doughnutConfig = {
-    type: 'doughnut',
-    data: { labels: ['Presença (%)', 'Faltas (%)'], datasets: [{ data: [], backgroundColor: [ '#64ffda', '#ff4d4d' ], hoverOffset: 4 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#a8b2d1' } } }, cutout: '80%', }
-};
-const lineConfig = {
-    type: 'line',
-    data: { labels: periodos, datasets: [{ label: 'Média Geral', data: [], borderColor: '#64ffda', backgroundColor: 'rgba(100, 255, 218, 0.1)', borderWidth: 2, tension: 0.4, pointRadius: 6, pointBackgroundColor: '#fff', fill: true }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Evolução da Média Geral', color: '#ccd6f6', font: { size: 16 } } }, scales: { y: { min: 0, max: 10, ticks: { color: '#a8b2d1', stepSize: 2 }, grid: { color: '#1e3c72' } }, x: { ticks: { color: '#a8b2d1' }, grid: { display: false } } } }
-};
-
-// Funções de inicializar e atualizar gráficos (sem alteração)
+const radarConfig = { type: 'radar', data: { labels: [], datasets: [{ label: 'Notas', data: [], backgroundColor: 'rgba(100, 255, 218, 0.2)', borderColor: '#64ffda', pointBackgroundColor: '#64ffda', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#64ffda', borderWidth: 2, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, }, scales: { r: { angleLines: { color: '#495c80' }, grid: { color: '#495c80' }, pointLabels: { color: '#ccd6f6', font: { size: 14 } }, suggestedMin: 0, suggestedMax: 10, ticks: { backdropColor: '#112240', color: '#a8b2d1', stepSize: 2 } } } } };
+const doughnutConfig = { type: 'doughnut', data: { labels: ['Presença (%)', 'Faltas (%)'], datasets: [{ data: [], backgroundColor: [ '#64ffda', '#ff4d4d' ], hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#a8b2d1' } } }, cutout: '80%', } };
+const lineConfig = { type: 'line', data: { labels: periodos, datasets: [{ label: 'Média Geral', data: [], borderColor: '#64ffda', backgroundColor: 'rgba(100, 255, 218, 0.1)', borderWidth: 2, tension: 0.4, pointRadius: 6, pointBackgroundColor: '#fff', fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Evolução da Média Geral', color: '#ccd6f6', font: { size: 16 } } }, scales: { y: { min: 0, max: 10, ticks: { color: '#a8b2d1', stepSize: 2 }, grid: { color: '#1e3c72' } }, x: { ticks: { color: '#a8b2d1' }, grid: { display: false } } } } };
 function inicializarGraficos() {
     if (radarCtx && !radarChart) radarChart = new Chart(radarCtx, radarConfig);
     if (doughnutCtx && !doughnutChart) doughnutChart = new Chart(doughnutCtx, doughnutConfig);
     if (lineCtx && !lineChart) lineChart = new Chart(lineCtx, lineConfig);
 }
-function atualizarGraficoRadar(notas) {
-    if (radarChart) {
-        radarChart.data.labels = Object.keys(notas);
-        radarChart.data.datasets[0].data = Object.values(notas);
-        radarChart.update();
-    }
-}
-function atualizarGraficoRosca(faltasPorMateria, aulasTotaisPorMateria) {
-    if (doughnutChart) {
-        let totalFaltas = 0, totalAulas = 0;
-        if (faltasPorMateria) totalFaltas = Object.values(faltasPorMateria).reduce((soma, faltas) => soma + (faltas || 0), 0);
-        if (aulasTotaisPorMateria) totalAulas = Object.values(aulasTotaisPorMateria).reduce((soma, aulas) => soma + (aulas || 0), 0);
-        const total = Math.max(totalAulas, 1); 
-        const percFaltas = (totalFaltas / total) * 100;
-        const percPresente = 100 - percFaltas;
-        doughnutChart.data.datasets[0].data = [percPresente.toFixed(2), percFaltas.toFixed(2)];
-        doughnutChart.update();
-    }
-}
-function atualizarGraficoLinha(historicoMedia) {
-    if (lineChart) {
-        lineChart.data.datasets[0].data = historicoMedia;
-        lineChart.update();
-    }
-}
-function atualizarMedia(aluno) {
-    let soma = 0, quant = 0;
-    const notas = aluno.notas || {};
-    for (let mat in notas) { soma += notas[mat]; quant++; }
-    const media = (quant > 0) ? Math.min(soma / quant, 10).toFixed(2) : 0;
-    aluno.media = parseFloat(media); 
-    mediaAlunoElemento.textContent = media;
-    mediaBarElemento.style.width = (media * 10) + '%';
-    calcularRanking(); 
-    rankElemento.textContent = `Rank ${aluno.rank}`;
-    atualizarGraficoRadar(aluno.notas);
-}
+function atualizarGraficoRadar(notas) { if (radarChart) { radarChart.data.labels = Object.keys(notas); radarChart.data.datasets[0].data = Object.values(notas); radarChart.update(); } }
+function atualizarGraficoRosca(faltasPorMateria, aulasTotaisPorMateria) { if (doughnutChart) { let totalFaltas = 0, totalAulas = 0; if (faltasPorMateria) totalFaltas = Object.values(faltasPorMateria).reduce((soma, faltas) => soma + (faltas || 0), 0); if (aulasTotaisPorMateria) totalAulas = Object.values(aulasTotaisPorMateria).reduce((soma, aulas) => soma + (aulas || 0), 0); const total = Math.max(totalAulas, 1); const percFaltas = (totalFaltas / total) * 100; const percPresente = 100 - percFaltas; doughnutChart.data.datasets[0].data = [percPresente.toFixed(2), percFaltas.toFixed(2)]; doughnutChart.update(); } }
+function atualizarGraficoLinha(historicoMedia) { if (lineChart) { lineChart.data.datasets[0].data = historicoMedia; lineChart.update(); } }
+function atualizarMedia(aluno) { let soma = 0, quant = 0; const notas = aluno.notas || {}; for (let mat in notas) { soma += notas[mat]; quant++; } const media = (quant > 0) ? Math.min(soma / quant, 10).toFixed(2) : 0; aluno.media = parseFloat(media); mediaAlunoElemento.textContent = media; mediaBarElemento.style.width = (media * 10) + '%'; calcularRanking(); rankElemento.textContent = `Rank ${aluno.rank}`; atualizarGraficoRadar(aluno.notas); }
 
-// --- ATUALIZADO: Função principal de renderização ---
+// --- Função principal de renderização ---
 function renderizarAluno(indice) {
     calcularRanking(); 
     const aluno = listaDeAlunos[indice];
@@ -284,8 +194,15 @@ function renderizarAluno(indice) {
     listaNotasElemento.innerHTML = ''; 
     listaFrequenciaElemento.innerHTML = ''; 
     rankElemento.textContent = `Rank ${aluno.rank}`;
+    
+    // ---Limpa os filtros ---
+    freqFilterContainer.style.display = 'none';
+    freqFilterCheckboxes.innerHTML = '';
+    gradesFilterContainer.style.display = 'none';
+    gradesFilterCheckboxes.innerHTML = '';
 
-    // Lógica da Foto (sem alteração)
+
+    // Lógica da Foto
     fotoElemento.className = 'photo'; 
     fotoElemento.style.backgroundImage = ''; 
     photoFrameElement.classList.add('clickable'); 
@@ -293,30 +210,60 @@ function renderizarAluno(indice) {
     else if (aluno.classeFoto) fotoElemento.classList.add(aluno.classeFoto);
 
     // Gráficos
-    // Garante que os gráficos não quebrem se o aluno (placeholder) não tiver os dados
     atualizarGraficoRadar(aluno.notas || {}); 
     atualizarGraficoRosca(aluno.faltasPorMateria || {}, aluno.aulasTotaisPorMateria || {}); 
     atualizarGraficoLinha(aluno.historicoMedia || [0, 0, 0]); 
 
-    // Popula Trimestre (sem alteração)
+    // Popula Trimestre
     const [t1, t2, t3] = aluno.historicoMedia || [0, 0, 0]; 
     gradeTrim1Input.value = t1 !== undefined ? t1 : '';
     gradeTrim2Input.value = t2 !== undefined ? t2 : '';
     gradeTrim3Input.value = t3 !== undefined ? t3 : '';
 
-    // --- LÓGICA DE PERMISSÃO ATUALIZADA (BASEADA EM CARGO) ---
+    // --- LÓGICA DE PERMISSÃO (Sem alteração) ---
     const isCoordenador = usuarioCargo === 'COORDENADOR';
-    
-    // Coordenador pode editar tudo. Professor pode editar (inclusive campos gerais). Ninguém edita o placeholder.
     const podeEditarCamposGerais = !ehPlaceholder && (isCoordenador || usuarioCargo === 'PROFESSOR');
     const podeEditarNotas = (materia) => !ehPlaceholder && (isCoordenador || (usuarioCargo === 'PROFESSOR' && materia === usuarioMateria));
     const podeEditarFaltas = (materia) => !ehPlaceholder && (isCoordenador || (usuarioCargo === 'PROFESSOR' && materia === usuarioMateria));
-    // -----------------------------------------------------------
 
-    // Recria os inputs de NOTA (Mostra todos)
+
+    // --- Recria os inputs de NOTA (Com Filtro) ---
     const notasMap = aluno.notas || {};
     for (let materia in notasMap) {
+        
+        // 1. Cria o Filtro (para todos, exceto placeholder)
+        if (!ehPlaceholder) {
+            gradesFilterContainer.style.display = 'block'; // Mostra o container
+            
+            const filterLi = document.createElement('li');
+            const filterCheckbox = document.createElement('input');
+            filterCheckbox.type = 'checkbox';
+            filterCheckbox.checked = true; // Começa marcado
+            filterCheckbox.id = `filter-grade-${materia}`;
+            filterCheckbox.setAttribute('data-materia-filtro', materia);
+            
+            const filterLabel = document.createElement('label');
+            filterLabel.htmlFor = `filter-grade-${materia}`;
+            filterLabel.textContent = materia;
+            
+            filterLi.appendChild(filterCheckbox);
+            filterLi.appendChild(filterLabel);
+            gradesFilterCheckboxes.appendChild(filterLi);
+
+            // Adiciona o evento para esconder/mostrar
+            filterCheckbox.addEventListener('change', (e) => {
+                const materiaSelecionada = e.target.getAttribute('data-materia-filtro');
+                const itemDaLista = document.querySelector(`#gradesList li[data-materia="${materiaSelecionada}"]`);
+                if (itemDaLista) {
+                    itemDaLista.style.display = e.target.checked ? 'flex' : 'none';
+                }
+            });
+        }
+
+        // 2. Cria o item da lista de Notas
         const itemLista = document.createElement('li');
+        itemLista.setAttribute('data-materia', materia); // Atributo para o filtro
+        
         const rotuloMateria = document.createElement('span');
         rotuloMateria.textContent = materia;
 
@@ -328,7 +275,6 @@ function renderizarAluno(indice) {
         inputNota.value = notasMap[materia];
         inputNota.classList.add('grade-input'); 
 
-        // Desativa se não puder editar
         if (!podeEditarNotas(materia)) {
             inputNota.disabled = true;
         }
@@ -348,21 +294,51 @@ function renderizarAluno(indice) {
         listaNotasElemento.appendChild(itemLista);
     }
 
-    // --- ATUALIZADO: Recria os inputs de FALTA ---
-    // Professor: Vê apenas a sua matéria.
-    // Coordenador: Vê todas as matérias.
-    // ---------------------------------------------
+
+    // --- Recria os inputs de FALTA (Com Filtro) ---
     const faltasMap = aluno.faltasPorMateria || {};
     const aulasMap = aluno.aulasTotaisPorMateria || {};
-    const materiasBase = aluno.notas || {}; // Usa as notas como base para as matérias
+    const materiasBase = aluno.notas || {}; 
 
     for (let materia in materiasBase) { 
         
-        // Se for Coordenador, mostra. Se for Professor, só mostra se for a sua matéria.
         const deveMostrarFalta = isCoordenador || (usuarioCargo === 'PROFESSOR' && materia === usuarioMateria);
 
         if (faltasMap.hasOwnProperty(materia) && deveMostrarFalta) { 
+            
+            // Cria o filtro (só para Coordenador)
+            if (isCoordenador && !ehPlaceholder) {
+                freqFilterContainer.style.display = 'block'; 
+                
+                const filterLi = document.createElement('li');
+                const filterCheckbox = document.createElement('input');
+                filterCheckbox.type = 'checkbox';
+                filterCheckbox.checked = true; 
+                filterCheckbox.id = `filter-freq-${materia}`;
+                filterCheckbox.setAttribute('data-materia-filtro', materia);
+                
+                const filterLabel = document.createElement('label');
+                filterLabel.htmlFor = `filter-freq-${materia}`;
+                filterLabel.textContent = materia;
+                
+                filterLi.appendChild(filterCheckbox);
+                filterLi.appendChild(filterLabel);
+                freqFilterCheckboxes.appendChild(filterLi);
+
+                // Adiciona o evento
+                filterCheckbox.addEventListener('change', (e) => {
+                    const materiaSelecionada = e.target.getAttribute('data-materia-filtro');
+                    const itemDaLista = document.querySelector(`#frequencyList li[data-materia="${materiaSelecionada}"]`);
+                    if (itemDaLista) {
+                        itemDaLista.style.display = e.target.checked ? 'flex' : 'none';
+                    }
+                });
+            }
+
+            // Cria o item da lista de Frequência
             const itemLista = document.createElement('li');
+            itemLista.setAttribute('data-materia', materia); 
+
             const rotuloMateria = document.createElement('span');
             rotuloMateria.textContent = materia;
 
@@ -374,7 +350,6 @@ function renderizarAluno(indice) {
             inputFalta.value = faltasMap[materia];
             inputFalta.classList.add('grade-input'); 
 
-            // Desativa se não puder editar (regra já inclui o placeholder)
             if (!podeEditarFaltas(materia)) {
                 inputFalta.disabled = true;
             }
@@ -394,7 +369,7 @@ function renderizarAluno(indice) {
             listaFrequenciaElemento.appendChild(itemLista);
         }
     }
-    // --- FIM DA ATUALIZAÇÃO DE FALTAS ---
+
 
     // Popula campos gerais
     anotacoesElemento.textContent = aluno.anotacao || '';
@@ -419,7 +394,7 @@ function renderizarAluno(indice) {
 // --- Event Listeners (Sem alteração) ---
 function handleHistoricalGradeChange(inputElement, trimestreIndex) {
     const aluno = listaDeAlunos[indiceAtual];
-    if (!aluno || aluno.matricula === '????') return; // Segurança extra
+    if (!aluno || aluno.matricula === '????') return; 
     let novoValor = parseFloat(inputElement.value);
     if (isNaN(novoValor)) novoValor = 0;
     if (novoValor > 10) novoValor = 10;
@@ -494,5 +469,4 @@ fileInputElement.addEventListener('change', (event) => {
 
 
 // --- Inicializa a aplicação ---
-// Chama a nova função que busca o Cargo antes de carregar os alunos
 buscarDadosUsuario();

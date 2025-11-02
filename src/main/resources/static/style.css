@@ -285,7 +285,7 @@ h1#studentName:focus {
     font-size: 14px;
 }
 
-/* --- NOVO: Estilo da Lista de Frequência --- */
+/* Estilo da Lista de Frequência */
 #frequencyList {
   list-style: none; 
   padding: 0;
@@ -300,7 +300,35 @@ h1#studentName:focus {
     margin-bottom: 8px;
     font-size: 14px;
 }
-/* --- FIM DO NOVO ESTILO --- */
+
+/* --- Estilo dos Filtros (Notas e Frequência) --- */
+#frequencyFilterCheckboxes,
+#gradesFilterCheckboxes {
+    list-style: none;
+    padding: 10px;
+    margin: 0;
+    font-size: 13px;
+    background: #0e2038; /* Fundo igual ao das caixas de anotações */
+    border: 1px dashed #495c80;
+    border-radius: 6px;
+}
+
+#frequencyFilterCheckboxes li,
+#gradesFilterCheckboxes li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    color: #a8b2d1;
+}
+
+#frequencyFilterCheckboxes input,
+#gradesFilterCheckboxes input {
+    margin-right: 10px;
+    /* Estilo "tech" para a checkbox */
+    accent-color: #64ffda;
+    background-color: #0a192f;
+}
+
 
 
 .grade-input {
@@ -313,7 +341,7 @@ h1#studentName:focus {
     text-align: center;
 }
 
-/*Estilos para o controle de Faltas (Não usado, mas mantido por segurança) */
+/*Controle de Faltas (Não usado, mas mantido) */
 .frequency-controls {
   width: 90%;
   margin: 15px auto 0;
