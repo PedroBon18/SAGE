@@ -1,4 +1,4 @@
-package com.sage.engine.model; // PACOTE CORRIGIDO
+package com.sage.engine.model; 
 
 import java.util.List;
 import java.util.Map;
@@ -6,7 +6,6 @@ import java.util.Map;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,15 +31,10 @@ public class Aluno {
     private String alerta;
     private String classeFoto;
 
-    // --- NOVO CAMPO PARA A IMAGEM ---
-    @Lob // Indica que é um Objeto Grande (para textos longos)
-    @Column(columnDefinition = "TEXT") // Garante espaço suficiente no BD
+    @Lob 
+    @Column(columnDefinition = "TEXT") 
     private String fotoBase64;
-    // ---------------------------------
-
-    @Embedded
-    private Frequencia frequencia;
-
+    
     @ElementCollection
     @CollectionTable(name = "aluno_notas")
     @MapKeyColumn(name = "materia")
@@ -51,6 +45,23 @@ public class Aluno {
     @CollectionTable(name = "aluno_historico_media")
     @Column(name = "media_trimestre")
     private List<Double> historicoMedia;
+
+    @ElementCollection
+    @CollectionTable(name = "aluno_faltas_materia")
+    @MapKeyColumn(name = "materia")
+    @Column(name = "faltas")
+    private Map<String, Integer> faltasPorMateria;
+
+    @ElementCollection
+    @CollectionTable(name = "aluno_aulas_materia")
+    @MapKeyColumn(name = "materia")
+    @Column(name = "aulas_totais")
+    private Map<String, Integer> aulasTotaisPorMateria;
+
+    // --- NOVO CAMPO DE INSTITUIÇÃO ---
+    @Column(nullable = false)
+    private String instituicao;
+    // ----------------------------------
 
     public Aluno() {}
 
@@ -73,14 +84,20 @@ public class Aluno {
     public void setAlerta(String alerta) { this.alerta = alerta; }
     public String getClasseFoto() { return classeFoto; }
     public void setClasseFoto(String classeFoto) { this.classeFoto = classeFoto; }
-    public Frequencia getFrequencia() { return frequencia; }
-    public void setFrequencia(Frequencia frequencia) { this.frequencia = frequencia; }
+    
     public Map<String, Double> getNotas() { return notas; }
     public void setNotas(Map<String, Double> notas) { this.notas = notas; }
     public List<Double> getHistoricoMedia() { return historicoMedia; }
     public void setHistoricoMedia(List<Double> historicoMedia) { this.historicoMedia = historicoMedia; }
-    // --- GETTER E SETTER DA NOVA FOTO ---
     public String getFotoBase64() { return fotoBase64; }
     public void setFotoBase64(String fotoBase64) { this.fotoBase64 = fotoBase64; }
-    // -------------------------------------
+
+    public Map<String, Integer> getFaltasPorMateria() { return faltasPorMateria; }
+    public void setFaltasPorMateria(Map<String, Integer> faltasPorMateria) { this.faltasPorMateria = faltasPorMateria; }
+    public Map<String, Integer> getAulasTotaisPorMateria() { return aulasTotaisPorMateria; }
+    public void setAulasTotaisPorMateria(Map<String, Integer> aulasTotaisPorMateria) { this.aulasTotaisPorMateria = aulasTotaisPorMateria; }
+
+    // --- GETTER E SETTER DA INSTITUIÇÃO ---
+    public String getInstituicao() { return instituicao; }
+    public void setInstituicao(String instituicao) { this.instituicao = instituicao; }
 }

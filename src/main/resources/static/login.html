@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.A.G.E. - Login</title>
+    <link rel="shortcut icon" href="img/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="login.css"> 
+</head>
+<body>
+    <div class="login-container" style="width: 400px;">
+        
+        <img src="img/logo/SAGE_LOGO_RBG.png" alt="S.A.G.E. Logo" id="login-logo" />
+        
+        <div id="message-container"></div>
+        
+        <form id="login-form">
+            <div class="login-group">
+                <label for="instituicao">Instituição</label>
+                <input type="text" id="instituicao" name="instituicao" class="login-input" required>
+            </div>
+             <div class="login-group">
+                <label for="cargo">Cargo</label>
+                <input type="text" id="cargo" name="cargo" class="login-input" required placeholder="Ex: PROFESSOR ou COORDENADOR">
+            </div>
+            <div class="login-group">
+                <label for="materia">Matéria (só para Professores)</label>
+                <input type="text" id="materia" name="materia" class="login-input" placeholder="Ex: Matemática">
+            </div>
+            <div class="login-group">
+                <label for="username">Nome de Usuário</label>
+                <input type="text" id="username" name="username" class="login-input" required>
+            </div>
+            <div class="login-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" class="login-input" required>
+            </div>
+            
+            <button type="submit" class="login-button">Entrar</button>
+        </form>
+    </div>
+    
+    <script src="login.js"></script>
+</body>
+</html>

@@ -21,11 +21,11 @@ body {
   gap: 20px;
   background: #112240; /* Fundo do painel */
   border: 2px solid #64ffda; /* Borda "glowing" ciano */
-  border-radius: 0; /* CORRIGIDO: Remove o arredondamento para preencher os cantos */
+  border-radius: 0; 
   padding: 20px; 
-  width: 100%; /* CORRIGIDO: Ocupa 100% da largura do body */
-  max-width: none; /* CORRIGIDO: Remove limitação de largura */
-  box-shadow: none; /* CORRIGIDO: Remove sombra */
+  width: 100%; 
+  max-width: none; 
+  box-shadow: none; 
 }
 
 .panel {
@@ -50,7 +50,6 @@ body {
     width: 90%; 
     height: 300px; 
     margin-top: 5px; 
-    /* Estilos do .chart-placeholder já são aplicados */
 }
 
 /* Linha de navegação (para manter botões e foto na mesma linha) */
@@ -63,14 +62,14 @@ body {
 }
 
 .photo-frame {
-  border: 3px solid #64ffda; /* Borda do hexágono */
+  border: 3px solid #64ffda; 
   clip-path: polygon(
     25% 6.7%, 75% 6.7%, 
     100% 50%, 75% 93.3%, 
     25% 93.3%, 0% 50%
   );
-  padding: 5px; /* Espaçamento para a borda */
-  margin: 0 15px; /* Margem entre botões e foto */
+  padding: 5px; 
+  margin: 0 15px; 
 }
 
 .photo {
@@ -85,31 +84,31 @@ body {
   );
 }
 
-/* Imagens (Corretas) */
-.photo.DefaultProfile { background-image: url('img/DefaultProfile.png'); } /* NOVO PADRÃO: Foto usada como base */
+/* Imagens */
+.photo.DefaultProfile { background-image: url('img/DefaultProfile.png'); } 
 .photo.AlunoPlaceholder {background-image: url('img/ADD_ALUNO.png');}
 
 /* Torna o frame da foto clicável */
 .photo-frame.clickable:hover {
-  border-color: #f9ff4d; /* Amarelo ao passar o mouse */
+  border-color: #f9ff4d; 
   cursor: pointer;
 }
 .photo-frame.clickable:hover .photo {
-  opacity: 0.8; /* Leve transparência ao passar o mouse */
+  opacity: 0.8; 
 }
 
 /* Estilização do Rank */
 #studentRank {
     font-size: 24px;
     font-weight: bold;
-    color: #fff; /* Texto branco */
-    background: #64ffda; /* Fundo ciano (cor de destaque) */
+    color: #fff; 
+    background: #64ffda; 
     padding: 8px 20px;
     border-radius: 4px;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Sombra para destacar Rank */
-    box-shadow: 0 0 10px rgba(100, 255, 218, 0.5); /* Efeito neon */
-    margin-top: 15px; /* Espaço para separar do bloco de notas históricas */
-    min-width: 120px; /* Garante que o bloco não seja muito pequeno */
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5); 
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.5); 
+    margin-top: 15px; 
+    min-width: 120px; 
     text-align: center;
 }
 
@@ -130,23 +129,17 @@ body {
   transform: scale(1.1);
 }
 
-/* --- NOVO: Estilo da Logo Central ---  */
+/* Estilo da Logo Central */
 .logo-container {
   width: 80%; 
   max-width: 250px; 
   margin: 5px 0; 
-  opacity: 1; /* <-- ALTERADO PARA 1 (sempre visível) */
-  /* A transição e o hover foram removidos */
+  opacity: 1; 
 }
 
 #projectLogo {
   width: 100%;
   height: auto; 
-}
-
-#projectLogo {
-  width: 100%;
-  height: auto; /* Mantém a proporção da imagem */
 }
 
 /* --- Painel Direito --- */
@@ -167,9 +160,9 @@ h1#studentName:focus {
 }
 
 .student-id-large {
-  font-size: 72px; /* ID gigante */
+  font-size: 72px; 
   font-weight: bold;
-  color: #64ffda; /* Cor destaque */
+  color: #64ffda; 
   margin: 10px 0;
 }
 
@@ -189,7 +182,7 @@ h1#studentName:focus {
   background: linear-gradient(90deg, #ff4d4d 0%, #f9ff4d 50%, #4dff4d 100%);
   border-radius: 4px;
   transition: width 0.5s ease;
-  width: 0%; /* Será definido pelo JS */
+  width: 0%; 
 }
 #studentAverage {
   position: absolute;
@@ -237,7 +230,6 @@ h1#studentName:focus {
   border-radius: 6px;
   text-align: center;
   font-weight: bold;
-  /* display: none; <-- REMOVIDO */
   border: 1px solid #f9ff4d; 
   color: #f9ff4d;
   background: rgba(249, 255, 77, 0.1);
@@ -293,6 +285,24 @@ h1#studentName:focus {
     font-size: 14px;
 }
 
+/* --- NOVO: Estilo da Lista de Frequência --- */
+#frequencyList {
+  list-style: none; 
+  padding: 0;
+  margin-top: 20px;
+  width: 90%;
+}
+
+#frequencyList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+/* --- FIM DO NOVO ESTILO --- */
+
+
 .grade-input {
     width: 60px;
     padding: 5px;
@@ -303,22 +313,14 @@ h1#studentName:focus {
     text-align: center;
 }
 
-/*Estilos para o controle de Faltas */
+/*Estilos para o controle de Faltas (Não usado, mas mantido por segurança) */
 .frequency-controls {
   width: 90%;
   margin: 15px auto 0;
   text-align: center;
 }
-
-.frequency-controls h3 {
-  margin-top: 5px; 
-}
-
-.frequency-controls label {
-  margin-right: 10px;
-  font-size: 14px;
-}
-
+.frequency-controls h3 { margin-top: 5px; }
+.frequency-controls label { margin-right: 10px; font-size: 14px; }
 #studentAbsencesInput {
   width: 70px;
   padding: 5px;
@@ -331,7 +333,7 @@ h1#studentName:focus {
   font-size: 16px;
 }
 
-/* NOVO: Estilos para a Edição de Notas Históricas */
+/* Estilos para a Edição de Notas Históricas */
 .historical-grades-input {
     width: 90%;
     padding: 10px;
@@ -379,7 +381,7 @@ h1#studentName:focus {
     grid-template-columns: 1fr;
     max-width: 600px;
     width: 90%;
-    border-radius: 12px; /* Reintroduz o arredondamento em telas pequenas */
+    border-radius: 12px; 
     box-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
   }
   .panel-center {
@@ -388,15 +390,13 @@ h1#studentName:focus {
     border-top: 2px solid #1e3c72;
     border-bottom: 2px solid #1e3c72;
     padding: 20px 15px; 
-    
-    /* Layout Vertical para Mobile */
     flex-direction: column; 
-    justify-content: flex-start; /* Alinha ao topo em tablets */
+    justify-content: flex-start; 
     gap: 10px; 
   }
   .line-chart-container {
     height: 250px;
-    order: -1; /* Força a ir para o topo do painel central */
+    order: -1; 
     margin-bottom: 20px;
   }
   .nav-row {
@@ -405,7 +405,7 @@ h1#studentName:focus {
   }
 
   .historical-grades-input .grades-row {
-      flex-direction: column; /* Empilha inputs em telas pequenas */
+      flex-direction: column; 
   }
 }
 
@@ -440,7 +440,6 @@ h1#studentName:focus {
 
 /* --- Media Queries para Controle de Zoom (Escala) --- */
 
-/* Escala Padrão para Notebooks Comuns (90% - Telas entre 1001px e 1440px) */
 @media (min-width: 1001px) and (max-width: 1440px) {
     body {
         transform: scale(0.9);
@@ -451,10 +450,9 @@ h1#studentName:focus {
     }
 }
 
-/* Escala para Desktops Grandes/Ultra-Wide (90% - Telas > 1440px) */
 @media (min-width: 1441px) {
     body {
-        transform: scale(0.9); /* ATUALIZADO para 90% */
+        transform: scale(0.9); 
         transform-origin: top center; 
         width: 100%;
         height: 100%;
