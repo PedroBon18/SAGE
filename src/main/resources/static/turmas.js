@@ -1,62 +1,57 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Referências aos elementos do HTML ---
+    // --- Referências (sem alterações) ---
     const grid = document.getElementById('turma-grid');
     const form = document.getElementById('nova-turma-form');
     const nomeTurmaInput = document.getElementById('nova-turma-nome');
     const messageContainer = document.getElementById('message-container');
     const containerCriarTurma = document.getElementById('container-criar-turma');
     const tituloPagina = document.getElementById('titulo-pagina');
+    const botaoLogout = document.getElementById('botao-logout');
+    let usuarioCargo = null; 
 
-    let usuarioCargo = null; // Para guardar o cargo (PROFESSOR ou COORDENADOR)
-
-    // --- 1. Função principal de inicialização ---
+    // --- 1. Função principal de inicialização (sem alterações) ---
     const iniciarPagina = async () => {
         try {
-            // 1.1. Busca a informação do usuário logado (cargo e matéria)
-            const responseUser = await fetch('/api/usuario/info');
-            
-            if (responseUser.status === 401) {
-                window.location.href = '/login.html'; // Redireciona se não estiver logado
+            const responseUser = await fetch('/api/usuario/info'); //
+            if (responseUser.status === 401) { 
+                window.location.href = '/login.html'; 
                 return;
             }
-            if (!responseUser.ok) {
+            if (!responseUser.ok) { 
                 throw new Error('Falha ao buscar dados do usuário.');
             }
             
-            const userInfo = await responseUser.json(); // Ex: { "cargo": "COORDENADOR", "materia": null }
+            const userInfo = await responseUser.json();
             usuarioCargo = userInfo.cargo;
 
-            // 1.2. Verifica o cargo e ajusta a UI
             if (usuarioCargo === 'COORDENADOR') {
                 tituloPagina.textContent = 'Selecione ou Crie uma Turma';
-                containerCriarTurma.style.display = 'block'; // Mostra o formulário
-                
-                // Configura o 'submit' do formulário SÓ se for coordenador
+                containerCriarTurma.style.display = 'block'; 
                 form.addEventListener('submit', criarNovaTurma);
-                
             } else {
                 tituloPagina.textContent = 'Selecione uma Turma';
-                containerCriarTurma.style.display = 'none'; // Garante que está escondido
+                containerCriarTurma.style.display = 'none'; 
+                if (botaoLogout) { 
+                    botaoLogout.style.width = '200px'; 
+                    botaoLogout.style.margin = '30px auto 0 auto'; 
+                }
             }
-
-            // 1.3. Carrega a lista de turmas para todos
             await carregarTurmas();
-
-        } catch (error) {
+        } catch (error) { 
             console.error('Erro na inicialização:', error);
             showMessage('error', 'Erro ao carregar dados da página.');
         }
     };
 
-    // --- 2. Função para carregar as turmas (VISÍVEL POR TODOS) ---
+    // --- 2. Função para carregar as turmas (AQUI ESTÁ A MUDANÇA) ---
     const carregarTurmas = async () => {
         try {
-            const response = await fetch('/api/turmas'); // GET /api/turmas
+            const response = await fetch('/api/turmas'); //
             if (!response.ok) {
                 throw new Error('Falha ao carregar turmas.');
             }
             
-            const turmas = await response.json(); // Ex: [{"id": 1, "nome": "1A", ...}]
+            const turmas = await response.json(); 
             grid.innerHTML = ''; // Limpa o grid
 
             if (turmas.length === 0) {
@@ -70,22 +65,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const card = document.createElement('div');
                 card.className = 'turma-card';
                 
-                // --- MUDANÇA: Link de navegação ---
-                // Cria um link <a> em vez de um card clicável
-                const link = document.createElement('a');
-                link.className = 'turma-link';
-                link.textContent = turma.nome;
-                // O link redireciona para o index.html (dashboard de alunos)
-                link.href = `/index.html?turma=${encodeURIComponent(turma.nome)}`;
-                card.appendChild(link);
+                // --- MUDANÇA (Substituímos o <a> por <span>) ---
+                // 1. Apenas cria o texto
+                const nomeTurma = document.createElement('span');
+                nomeTurma.textContent = turma.nome;
+                card.appendChild(nomeTurma);
                 
-                // --- MUDANÇA: Botão de Apagar (SÓ PARA COORDENADOR) ---
+                // 2. Adiciona o clique ao CARD INTEIRO
+                card.onclick = () => {
+                    // Redireciona para o index.html
+                    window.location.href = `/index.html?turma=${encodeURIComponent(turma.nome)}`;
+                };
+                // --------------------------------------------------
+
+                // --- Botão de Apagar (SÓ PARA COORDENADOR) ---
                 if (usuarioCargo === 'COORDENADOR') {
                     const btnApagar = document.createElement('button');
                     btnApagar.className = 'btn-apagar';
                     btnApagar.textContent = 'Apagar';
                     btnApagar.onclick = (e) => {
-                        e.stopPropagation(); // Impede o clique de ir para o link
+                        // 3. Este stopPropagation é MUITO importante.
+                        // Ele impede que o clique no botão "Apagar"
+                        // ative o 'card.onclick' que acabámos de adicionar.
+                        e.stopPropagation(); 
                         apagarTurma(turma.id, turma.nome);
                     };
                     card.appendChild(btnApagar);
@@ -117,8 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showMessage('success', `Turma "${nomeTurma}" criada com sucesso!`);
                 nomeTurmaInput.value = '';
                 carregarTurmas(); // Recarrega a lista
-            } else if (response.status === 403) {
-                // 403 Forbidden - O Spring Security bloqueou (regra de COORDENADOR)
+            } else if (response.status === 403) { //
                 showMessage('error', 'Acesso negado. Apenas coordenadores podem criar turmas.');
             } else {
                 const errorText = await response.text();
@@ -137,14 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         try {
-            const response = await fetch(`/api/turmas/${idTurma}`, {
+            const response = await fetch(`/api/turmas/${idTurma}`, { //
                 method: 'DELETE'
             });
 
             if (response.ok) {
                 showMessage('success', `Turma "${nomeTurma}" apagada.`);
                 carregarTurmas(); // Recarrega a lista
-            } else if (response.status === 403) {
+            } else if (response.status === 403) { //
                 showMessage('error', 'Acesso negado. Apenas coordenadores podem apagar turmas.');
             } else {
                 const errorText = await response.text();

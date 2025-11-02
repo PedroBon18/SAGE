@@ -36,6 +36,7 @@ const alunoPlaceholder = {
 // --- Seletores de elementos ---
 const nomeAlunoElemento = document.getElementById('studentName');
 const matriculaAlunoElemento = document.getElementById('studentID');
+const alunoTurmaElemento = document.getElementById('alunoTurma'); // <-- NOVO SELETOR
 const mediaAlunoElemento = document.getElementById('studentAverage');
 const listaNotasElemento = document.getElementById('gradesList');
 const anotacoesElemento = document.getElementById('notes');
@@ -59,7 +60,10 @@ const gradesFilterContainer = document.getElementById('gradesFilterContainer');
 const gradesFilterCheckboxes = document.getElementById('gradesFilterCheckboxes');
 
 // --- Seletor de Input de Turma ---
-const turmaInputElemento = document.getElementById('studentTurmaInput');
+let turmaInputElemento = document.getElementById('studentTurmaInput');
+if (!turmaInputElemento) {
+    turmaInputElemento = { value: '', disabled: true, addEventListener: () => {} };
+}
 // ------------------------------------
 
 // Variáveis globais para os Gráficos
@@ -72,7 +76,7 @@ const lineCtx = document.getElementById('lineChart')?.getContext('2d');
 
 // --- FUNÇÕES DE API ---
 
-// 1. ATUALIZADO: Função de inicialização
+// 1. Função de inicialização
 async function initApp() {
     // Pega o nome da turma do URL (ex: ?turma=1A)
     const params = new URLSearchParams(window.location.search);
@@ -117,7 +121,7 @@ async function buscarDadosUsuario() {
 }
 
 
-// 3. ATUALIZADO: Função para CRIAR um novo aluno
+// 3. Função para CRIAR um novo aluno
 async function handleCriarNovoAluno() {
     if (!turmaAtual) {
         alert("Erro: A turma atual não está definida.");
@@ -189,7 +193,7 @@ async function salvarAtualizacoesAluno(aluno) {
 }
 
 
-// 5. ATUALIZADO: Função para carregar dados da API (recebe o nome da turma)
+// 5. Função para carregar dados da API (recebe o nome da turma)
 async function carregarAlunosDaAPI(turmaNome) {
     if (!turmaNome) {
         listaDeAlunos = [alunoPlaceholder];
@@ -255,6 +259,11 @@ function renderizarAluno(indice) {
 
     nomeAlunoElemento.textContent = aluno.nome;
     matriculaAlunoElemento.textContent = aluno.matricula;
+    
+    // --- LÓGICA DE TURMA ADICIONADA ---
+    alunoTurmaElemento.textContent = `Turma: ${aluno.turma || 'N/A'}`; 
+    // ----------------------------------
+    
     listaNotasElemento.innerHTML = ''; 
     listaFrequenciaElemento.innerHTML = ''; 
     rankElemento.textContent = `Rank ${aluno.rank}`;
@@ -284,7 +293,9 @@ function renderizarAluno(indice) {
     gradeTrim3Input.value = t3 !== undefined ? t3 : '';
     
     // ATUALIZADO: Popula o input de turma
-    turmaInputElemento.value = aluno.turma || turmaAtual;
+    if (turmaInputElemento) {
+        turmaInputElemento.value = aluno.turma || turmaAtual;
+    }
 
     // --- LÓGICA DE PERMISSÃO (Sem alteração) ---
     const isCoordenador = usuarioCargo === 'COORDENADOR';
@@ -436,7 +447,9 @@ function renderizarAluno(indice) {
     inputsHistorico.forEach(input => input.disabled = !podeEditarCamposGerais);
     
     // Coordenador pode editar a turma, professor não.
-    turmaInputElemento.disabled = !isCoordenador || ehPlaceholder;
+    if (turmaInputElemento) {
+        turmaInputElemento.disabled = !isCoordenador || ehPlaceholder;
+    }
     
     const editaveis = document.querySelectorAll('#studentName, #notes, #studentAlert, #studentGoals, #studentFeedback');
     editaveis.forEach(caixa => caixa.contentEditable = podeEditarCamposGerais);
@@ -491,7 +504,10 @@ addBlurSaveListener(anotacoesElemento, 'anotacao');
 addBlurSaveListener(alertaElemento, 'alerta');
 addBlurSaveListener(metasElemento, 'metas');
 addBlurSaveListener(feedbackElemento, 'feedback');
-addBlurSaveListener(turmaInputElemento, 'turma'); // Listener para o input de turma
+
+if (turmaInputElemento) {
+    addBlurSaveListener(turmaInputElemento, 'turma'); // Listener para o input de turma
+}
 
 
 document.getElementById('prev').addEventListener('click', () => {

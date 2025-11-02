@@ -6,11 +6,8 @@ document.getElementById('login-form').addEventListener('submit', async function(
     
     const loginData = {};
     formData.forEach((value, key) => {
-        // (Mantive a tua lógica de login aqui, está correta)
         if (key === 'materia' && value === '') {
             loginData[key] = null;
-        } else if (key === 'username') {
-             loginData[key] = value.trim(); // Boa prática
         } else {
             loginData[key] = value;
         }
@@ -24,7 +21,6 @@ document.getElementById('login-form').addEventListener('submit', async function(
     messageContainer.innerHTML = ''; 
 
     try {
-        // 1. Tenta fazer o login
         const response = await fetch('/api/login', { 
             method: 'POST',
             headers: {
@@ -33,17 +29,12 @@ document.getElementById('login-form').addEventListener('submit', async function(
             body: JSON.stringify(loginData)
         });
 
-        // 2. Se o login tiver sucesso...
         if (response.ok) {
 
-            // ================== MUDANÇA DO TESTE ==================
-            // Vamos redirecionar para o index.html (página segura)
-            // em vez do turmas.html (página com bug).
-            window.location.href = '/index.html'; 
-            // ======================================================
+            // O destino volta a ser 'turmas.html'
+            window.location.href = '/turmas.html'; 
 
         } else {
-            // Se o login falhar (ex: 401 Senha errada), mostra o erro
             const errorText = await response.text();
             messageContainer.innerHTML = `<div class="error-message">${errorText || 'Usuário ou senha inválidos.'}</div>`;
         }

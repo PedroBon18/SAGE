@@ -2,7 +2,7 @@ package com.sage.engine.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // <--- ESTE É O IMPORT QUE DEVE ESTAR A FALTAR
+import org.springframework.http.HttpMethod; 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -48,28 +48,30 @@ public class SecurityConfig {
         
         http
             .authorizeHttpRequests(auth -> auth
-                // 1. Permite o acesso público
+                // 1. Permite o acesso público a TODAS as páginas estáticas
                 .requestMatchers(
                     "/h2-console/**", 
-                    "/login.html",
+                    "/login.html",   // Página de Login
                     "/login.css",
                     "/login.js",
                     "/api/login",
                     "/img/**",
-                    "/turmas.html",
-                    "/turmas.js"
+                    "/turmas.html",  // Página de Turmas
+                    "/turmas.js",
+                    "/index.html",   // <-- ADICIONADO: A tua dashboard principal
+                    "/main.js",      // <-- ADICIONADO: O script de /index.html
+                    "/style.css"     // <-- ADICIONADO: O CSS de /index.html
                 ).permitAll()
                 
-                // --- 2. NOVAS REGRAS CORRIGIDAS ---
-                // Todos autenticados podem LISTAR turmas e VER a info do usuário
+                // --- 2. NOVAS REGRAS (AGORA CORRETAS) ---
+                // Todos autenticados podem LISTAR (GET) turmas e ver a info do usuário
                 .requestMatchers(HttpMethod.GET, "/api/turmas", "/api/usuario/info").authenticated()
                 // Apenas COORDENADORES podem CRIAR (POST)
                 .requestMatchers(HttpMethod.POST, "/api/turmas").hasRole("COORDENADOR")
                 // Apenas COORDENADORES podem APAGAR (DELETE)
                 .requestMatchers(HttpMethod.DELETE, "/api/turmas/**").hasRole("COORDENADOR")
-                // ----------------------------------------------
                 
-                // 3. Exige autenticação para o resto
+                // 3. Exige autenticação para o resto (incluindo /api/alunos/**)
                 .anyRequest().authenticated() 
             )
             
@@ -95,7 +97,7 @@ public class SecurityConfig {
                     "/h2-console/**", 
                     "/api/login", 
                     "/api/alunos/**", 
-                    "/api/turmas/**"
+                    "/api/turmas/**" 
                 ) 
             )
             .headers(headers -> headers

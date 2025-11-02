@@ -32,6 +32,10 @@
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
+            
+            /* --- ALTERAÇÕES DE ESTILO AQUI --- */
+            cursor: pointer;   /* 1. Mostra a "mãozinha" de clique */
+            font-weight: bold; /* 2. Deixa o texto da turma em negrito */
         }
         .turma-card:hover {
             border-color: #64ffda;
@@ -39,25 +43,9 @@
             transform: translateY(-5px);
         }
         
-        /* Estilo para o formulário empilhado */
-        #nova-turma-form {
-            display: flex;
-            flex-direction: column; 
-            gap: 10px;             
-            margin-top: 20px;
-        }
+        /* 3. REMOVEMOS O ESTILO .turma-link E .turma-link:hover DAQUI */
 
-        .turma-link {
-            text-decoration: none;
-            color: #ccd6f6;
-            font-weight: bold;
-            padding: 10px;
-            width: 100%;
-        }
-        .turma-link:hover {
-            color: #64ffda;
-        }
-
+        /* Estilo para o botão de apagar */
         .btn-apagar {
             background-color: #4a0e0e;
             border: 1px solid #c74646;
@@ -73,8 +61,59 @@
             color: #0a192f;
         }
 
+        /* Estilo para o formulário empilhado */
+        #nova-turma-form {
+            display: flex;
+            flex-direction: column; 
+            gap: 10px;             
+            margin-top: 20px;
+        }
+
+        /* Faz o botão 'Criar' ter mesma largura e alinhamento do 'Sair' */
+        #nova-turma-form .login-button {
+            width: 120px; /* mesma largura definida em .sair-botao */
+            margin: 8px auto 0; /* centraliza e adiciona pequeno espaçamento acima */
+            display: block;
+            padding: 8px 0;
+        }
+
         #container-criar-turma {
             display: none; 
+            /* Espaçamento inferior entre o bloco de criação e o botão de logout */
+            margin-bottom: 18px;
+        }
+        
+        /* Ajuste no botão "Sair" para manter estilo uniforme e alinhado ao botão Criar */
+        .sair-botao {
+            text-decoration: none;
+            text-align: center;
+            width: 120px; /* mesma largura do botão 'Criar' */
+            box-sizing: border-box;
+            display: block;
+            margin: 24px auto 0; /* centraliza e dá espaçamento superior */
+            padding: 8px 0;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .sair-botao,
+            #nova-turma-form .login-button {
+                width: 90% !important;
+                margin: 12px auto 0 !important;
+                padding: 10px 0;
+            }
+            .login-container {
+                width: calc(100% - 40px) !important;
+                max-width: 600px;
+                padding: 0 10px;
+            }
+        }
+        @media (min-width: 481px) and (max-width: 800px) {
+            .sair-botao,
+            #nova-turma-form .login-button {
+                width: 160px;
+                margin: 12px auto 0;
+            }
+            .login-container { width: 85%; max-width: 700px; }
         }
     </style>
 </head>
@@ -100,11 +139,11 @@
             </form>
         </div>
         
-        <a href="/logout" class="login-button" id="botao-logout"
-           style="text-decoration: none; text-align: center; width: 100%; margin-top: 30px; box-sizing: border-box;">
-           Sair (Logout)
-        </a>
-        </div>
+          <a href="/logout" class="login-button sair-botao" id="botao-logout"
+              style="text-decoration: none; text-align: center; box-sizing: border-box;">
+              Sair (Logout)
+          </a>
+    </div>
 
     <script src="turmas.js"></script>
 </body>
