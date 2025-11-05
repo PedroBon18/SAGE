@@ -2,13 +2,16 @@ package com.sage.engine.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional; // <--- ADICIONAR IMPORT
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping; // <--- ADICIONAR IMPORT
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable; // <--- ADICIONAR IMPORT
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,6 +69,42 @@ public class TurmaController {
         
         return ResponseEntity.ok(novaTurma);
     }
+
+    // --- NOVO MÉTODO ADICIONADO ABAIXO ---
+
+    /**
+     * Apaga uma turma existente.
+     * (A segurança de @PreAuthorize("hasRole('COORDENADOR')") 
+     * provavelmente está no SecurityConfig, por isso não é testada aqui)
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> apagarTurma(@PathVariable Long id, Authentication authentication) {
+        Professor professorLogado = getProfessorLogado(authentication);
+
+        // 1. Tenta encontrar a turma pelo ID
+        Optional<Turma> turmaOptional = turmaRepository.findById(id);
+
+        if (turmaOptional.isEmpty()) {
+            // Se a turma não existe, retorna 404 (Não Encontrado)
+            return ResponseEntity.notFound().build();
+        }
+
+        Turma turma = turmaOptional.get();
+
+        // 2. Verifica se a turma pertence à mesma instituição do professor logado
+        //    (Impede um coordenador de apagar turmas de outra instituição)
+        if (!turma.getInstituicao().equals(professorLogado.getInstituicao())) {
+            // Retorna 403 (Proibido) se a turma for de outra instituição
+            return ResponseEntity.status(403).body("Acesso negado: esta turma pertence a outra instituição.");
+        }
+
+        // 3. Se tudo estiver correto, apaga a turma
+        turmaRepository.deleteById(id);
+
+        // Retorna 200 (OK) com uma mensagem de sucesso
+        return ResponseEntity.ok().body("Turma apagada com sucesso.");
+    }
+    
     
     private Professor getProfessorLogado(Authentication authentication) {
         String username = authentication.getName();

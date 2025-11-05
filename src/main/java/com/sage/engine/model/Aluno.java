@@ -23,6 +23,9 @@ public class Aluno {
     @Column(unique = true)
     private String matricula;
 
+    @Column(nullable = false)
+    private String password;
+
     private String nome;
     private double media;
     private String anotacao;
@@ -74,6 +77,8 @@ public class Aluno {
     public void setId(Long id) { this.id = id; }
     public String getMatricula() { return matricula; }
     public void setMatricula(String matricula) { this.matricula = matricula; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
     public double getMedia() { return media; }

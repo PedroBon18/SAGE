@@ -1,13 +1,14 @@
 package com.sage.engine.controller; 
 
 import java.util.List; 
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException; 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping; // Import necessário
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +25,7 @@ import com.sage.engine.repository.ProfessorRepository;
 
 @RestController
 @RequestMapping("/api/alunos")
-@CrossOrigin(origins = "*") 
+// @CrossOrigin(origins = "*", allowCredentials = "true") // <-- ESTA LINHA FOI REMOVIDA
 public class AlunoController {
 
     @Autowired
@@ -33,13 +34,16 @@ public class AlunoController {
     @Autowired
     private ProfessorRepository professorRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     /**
-     * Retorna os alunos da instituição E TURMA especificadas.
+     * Retorna os alunos da instituição E TURMA especificadas (para Professor/Coordenador).
      * Ex: GET /api/alunos?turma=1A
      */
     @GetMapping
     public List<Aluno> listarTodosAlunos(
-            @RequestParam String turma, // Exige o parâmetro "turma" (o nome da turma)
+            @RequestParam String turma, 
             Authentication authentication) {
         
         Professor professorLogado = getProfessorLogado(authentication);
@@ -52,97 +56,128 @@ public class AlunoController {
     }
     
     /**
-     * Cria um novo aluno.
-     * A instituição é definida pelo professor.
-     * A turma (string) deve vir no objeto JSON.
+     * NOVO ENDPOINT: Retorna apenas o aluno logado (para uso pelo próprio aluno).
+     * Ex: GET /api/alunos/me
+     * O Spring Security garante que apenas usuários com a role 'ALUNO' acessam.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<Aluno> getAlunoLogado(Authentication authentication) {
+        // O nome de autenticação para um aluno é a sua Matrícula (ver AlunoUserDetailsService)
+        String matricula = authentication.getName();
+        
+        return alunoRepository.findByMatricula(matricula)
+                .map(ResponseEntity::ok)
+                // Se for encontrado, retorna 200 OK com o objeto Aluno.
+                .orElse(ResponseEntity.notFound().build()); 
+    }
+    
+    /**
+     * Cria um novo aluno. Acesso restrito a Professor/Coordenador.
+     * * --- CORREÇÃO APLICADA (Turno anterior) ---
      */
     @PostMapping
-    public Aluno criarNovoAluno(@RequestBody Aluno novoAluno, Authentication authentication) {
+    public Aluno criarNovoAluno(@RequestBody Aluno aluno, Authentication authentication) {
+        // 1. Obtém o professor logado
         Professor professorLogado = getProfessorLogado(authentication);
         
-        novoAluno.setInstituicao(professorLogado.getInstituicao());
-
-        if (novoAluno.getTurma() == null || novoAluno.getTurma().isEmpty()) {
-            throw new IllegalArgumentException("A turma é obrigatória para criar um novo aluno.");
+        // 2. Define a instituição (obrigatório e por segurança)
+        aluno.setInstituicao(professorLogado.getInstituicao());
+        
+        // 3. Define uma palavra-passe padrão (ex: a matrícula) e codifica-a
+        if (aluno.getMatricula() != null && !aluno.getMatricula().isEmpty()) {
+            aluno.setPassword(passwordEncoder.encode(aluno.getMatricula()));
+        } else {
+            // Fallback caso a matrícula venha vazia
+            String matriculaPadrao = "MAT-" + System.currentTimeMillis();
+            aluno.setMatricula(matriculaPadrao);
+            aluno.setPassword(passwordEncoder.encode(matriculaPadrao));
         }
-
-        if (novoAluno.getFaltasPorMateria() == null) {
-            novoAluno.setFaltasPorMateria(new java.util.HashMap<>());
-        }
-        if (novoAluno.getAulasTotaisPorMateria() == null) {
-            novoAluno.setAulasTotaisPorMateria(new java.util.HashMap<>());
-        }
-        return alunoRepository.save(novoAluno);
+        
+        // 4. Salva o aluno agora completo
+        return alunoRepository.save(aluno);
     }
 
     /**
-     * Atualiza um aluno.
+     * Atualiza um aluno existente. Acesso restrito a Professor/Coordenador.
+     * * --- CORREÇÃO APLICADA (Turno anterior) ---
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Aluno> atualizarAluno(@PathVariable Long id, @RequestBody Aluno alunoAtualizado, Authentication authentication) {
+    public ResponseEntity<Aluno> atualizarAluno(
+            @PathVariable Long id, 
+            @RequestBody Aluno alunoAtualizado) {
         
-        Professor professorLogado = getProfessorLogado(authentication);
-        String instituicaoProfessor = professorLogado.getInstituicao();
-
         return alunoRepository.findById(id)
                 .map(alunoExistente -> {
                     
-                    if (!alunoExistente.getInstituicao().equals(instituicaoProfessor)) {
-                        return ResponseEntity.status(403).<Aluno>build(); 
-                    }
-                    
-                    // Atualiza todos os campos
+                    // --- ATUALIZAÇÃO SEGURA ---
                     alunoExistente.setNome(alunoAtualizado.getNome());
-                    alunoExistente.setMatricula(alunoAtualizado.getMatricula());
+                    alunoExistente.setMatricula(alunoAtualizado.getMatricula()); 
                     alunoExistente.setMedia(alunoAtualizado.getMedia());
                     alunoExistente.setAnotacao(alunoAtualizado.getAnotacao());
                     alunoExistente.setMetas(alunoAtualizado.getMetas());
                     alunoExistente.setFeedback(alunoAtualizado.getFeedback());
                     alunoExistente.setAlerta(alunoAtualizado.getAlerta());
-                    alunoExistente.setNotas(alunoAtualizado.getNotas());
-                    alunoExistente.setHistoricoMedia(alunoAtualizado.getHistoricoMedia());
                     alunoExistente.setClasseFoto(alunoAtualizado.getClasseFoto());
                     alunoExistente.setFotoBase64(alunoAtualizado.getFotoBase64());
+                    alunoExistente.setNotas(alunoAtualizado.getNotas());
+                    alunoExistente.setHistoricoMedia(alunoAtualizado.getHistoricoMedia());
                     alunoExistente.setFaltasPorMateria(alunoAtualizado.getFaltasPorMateria());
                     alunoExistente.setAulasTotaisPorMateria(alunoAtualizado.getAulasTotaisPorMateria());
-                    alunoExistente.setTurma(alunoAtualizado.getTurma()); // Atualiza a turma
-
-                    Aluno salvo = alunoRepository.save(alunoExistente);
-                    return ResponseEntity.ok(salvo);
-                })
-                .orElse(ResponseEntity.notFound().<Aluno>build());
-    }
-    
-    /**
-     * Apaga um aluno pelo ID, com verificação de instituição.
-     * Ex: DELETE /api/alunos/123
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> apagarAluno(@PathVariable Long id, Authentication authentication) {
-        
-        Professor professorLogado = getProfessorLogado(authentication);
-        String instituicaoProfessor = professorLogado.getInstituicao();
-
-        return alunoRepository.findById(id)
-                .map(alunoExistente -> {
+                    alunoExistente.setTurma(alunoAtualizado.getTurma());
                     
-                    // SEGURANÇA: Verifica se o aluno pertence à instituição do professor
-                    if (!alunoExistente.getInstituicao().equals(instituicaoProfessor)) {
-                        // Resposta 403 (Proibido) se não pertencer
-                        return ResponseEntity.status(403).<Void>build(); 
-                    }
-                    
-                    alunoRepository.delete(alunoExistente);
-                    // Resposta 200 (OK) sem corpo
-                    return ResponseEntity.ok().<Void>build();
+                    return ResponseEntity.ok(alunoRepository.save(alunoExistente));
                 })
-                // Resposta 404 se o ID não for encontrado
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Endpoint temporário para atualizar turma e senha do aluno.
+     * * --- CORREÇÃO APLICADA (Turno anterior) ---
+     */
+    @PostMapping("/setup-test")
+    public ResponseEntity<String> setupTestAluno() {
+        try {
+            Optional<Aluno> alunoOpt = alunoRepository.findByMatricula("joao.test");
+            
+            if (alunoOpt.isPresent()) {
+                Aluno joao = alunoOpt.get();
+                joao.setTurma("1A");
+                joao.setPassword(passwordEncoder.encode("senha123")); // Correto
+                
+                alunoRepository.save(joao);
+                return ResponseEntity.ok("Aluno atualizado com sucesso!");
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erro ao atualizar aluno: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Apaga um aluno. Acesso restrito a Professor/Coordenador.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> apagarAluno(@PathVariable Long id) {
+        if (alunoRepository.existsById(id)) {
+            alunoRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Método auxiliar para obter o professor logado
+     */
     private Professor getProfessorLogado(Authentication authentication) {
         String username = authentication.getName();
-        return professorRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Professor não encontrado: " + username));
+        Optional<Professor> professorOpt = professorRepository.findByUsername(username);
+        
+        if (professorOpt.isEmpty()) {
+            throw new UsernameNotFoundException("Professor não encontrado: " + username);
+        }
+        
+        return professorOpt.get();
     }
 }

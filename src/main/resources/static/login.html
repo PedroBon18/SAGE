@@ -21,7 +21,13 @@
                 <option value="" disabled selected>Selecionar Cargo</option>
                 <option value="professor">Professor</option>
                 <option value="coordenador">Coordenador</option>
+                <option value="aluno">Aluno</option>
             </select>
+            
+            <!-- Container para matrícula (visível apenas para alunos) -->
+            <div id="matricula-container" style="display: none;">
+                <input type="text" id="matricula" name="matricula" class="login-input" placeholder="Matrícula do Aluno">
+            </div>
             
             <div id="materia-container" style="display: none;"> 
                 <select id="materia" name="materia" class="login-input">
