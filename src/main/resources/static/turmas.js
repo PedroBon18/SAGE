@@ -1,3 +1,5 @@
+// [CONTEÚDO COMPLETO DE S.A.G.E/src/main/resources/static/turmas.js]
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Referências aos elementos do HTML ---
     const grid = document.getElementById('turma-grid');
@@ -75,8 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const link = document.createElement('a');
                 link.className = 'turma-link';
                 link.textContent = turma.nome;
-                // O link redireciona para o index.html (dashboard de alunos)
-                link.href = `/index.html?turma=${encodeURIComponent(turma.nome)}`;
+                
+                // **********************************************************
+                // *** ALTERAÇÃO PRINCIPAL AQUI ***
+                // O link agora aponta para a nova página de lista de alunos
+                link.href = `/alunos.html?turma=${encodeURIComponent(turma.nome)}`;
+                // **********************************************************
+
                 card.appendChild(link);
                 
                 // --- MUDANÇA: Botão de Apagar (SÓ PARA COORDENADOR) ---

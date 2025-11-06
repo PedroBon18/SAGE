@@ -114,7 +114,8 @@ async function handleApagarAluno(alunoId, nomeAluno) {
             }
             
             // 4. Recarrega a lista de alunos da turma atual (para refletir a eliminação)
-            carregarAlunosDaAPI(turmaAtual); 
+            // *** MODIFICAÇÃO: Passa null como ID selecionado para recarregar no primeiro ***
+            carregarAlunosDaAPI(turmaAtual, null); 
 
         } else if (response.status === 403) {
             alert("Acesso negado. Você não tem permissão para apagar alunos desta instituição.");
@@ -129,27 +130,29 @@ async function handleApagarAluno(alunoId, nomeAluno) {
 // ---------------------------------
 
 
-// 1. Função de inicialização
+// 1. Função de inicialização (*** ATUALIZADA ***)
 async function initApp() {
-    // Pega o nome da turma do URL (ex: ?turma=1A)
+    // Pega os parâmetros do URL
     const params = new URLSearchParams(window.location.search);
     turmaAtual = params.get('turma');
+    
+    // *** NOVO: Pega o ID do aluno selecionado ***
+    const alunoIdSelecionado = params.get('alunoId'); // Ex: "123"
 
     if (!turmaAtual) {
         // Se nenhuma turma foi passada, volta para a tela de seleção
-        // A não ser que seja um ALUNO (a lógica para ALUNO é ignorar o parâmetro 'turma' no URL)
-        // Mas o initApp original depende de turmaAtual. Vamos ajustar:
-        await buscarDadosUsuario(); // Tenta buscar o usuário primeiro.
+        // (A lógica de ALUNO logado é tratada em buscarDadosUsuario)
+        await buscarDadosUsuario(alunoIdSelecionado); // Passa o ID (provavelmente null, mas seguro)
     } else {
         // Define o placeholder para já ter a turma correta
         alunoPlaceholder.turma = turmaAtual;
-        await buscarDadosUsuario();
+        await buscarDadosUsuario(alunoIdSelecionado); // Passa o ID
     }
 }
 
 
-// 2. Busca os dados (Cargo e Matéria) do usuário logado
-async function buscarDadosUsuario() {
+// 2. Busca os dados (Cargo e Matéria) do usuário logado (*** ATUALIZADA ***)
+async function buscarDadosUsuario(alunoIdSelecionado) { // Recebe o ID
     try {
         const response = await fetch('/api/usuario/info'); 
         if (response.status === 401) {
@@ -164,23 +167,23 @@ async function buscarDadosUsuario() {
         
         console.log(`Usuário logado. Cargo: ${usuarioCargo}, Matéria: ${usuarioMateria || 'N/A'}`);
 
-        // 3. Carrega os alunos. Se for ALUNO, o turmaAtual é ignorado (passamos null ou a turma original)
-        // A função carregarAlunosDaAPI irá tratar se deve chamar /me ou /?turma=...
+        // 3. Carrega os alunos.
         
         if (usuarioCargo === 'ALUNO') {
-             // Alunos não precisam de turma, carregam a si mesmos (passamos a turma se vier, mas ela será ignorada na lógica /me)
-            
+             // Alunos não precisam de turma, carregam a si mesmos
             document.getElementById('alunoTurma').textContent = 'Meu Perfil';
-
-            carregarAlunosDaAPI(turmaAtual); // Passamos a turma para ter um valor inicial (opcional)
+            // Passa o ID (será ignorado pela lógica /me, mas mantém consistência)
+            carregarAlunosDaAPI(turmaAtual, alunoIdSelecionado); 
+            
         } else if (turmaAtual) {
             // Professor/Coordenador com turma no URL
-            carregarAlunosDaAPI(turmaAtual);
+            // Passa o ID para carregar o aluno correto
+            carregarAlunosDaAPI(turmaAtual, alunoIdSelecionado);
+            
         } else {
             // Professor/Coordenador sem turma no URL (deve voltar para seleção)
             window.location.href = '/turmas.html'; 
         }
-
 
     } catch (error) {
         console.error('Erro ao buscar dados do usuário:', error);
@@ -330,8 +333,8 @@ async function salvarAtualizacoesAluno(aluno) {
 }
 
 
-// 5. Função para carregar dados da API (AGORA SUPORTA O FLUXO ALUNO)
-async function carregarAlunosDaAPI(turmaNome) {
+// 5. Função para carregar dados da API (*** ATUALIZADA ***)
+async function carregarAlunosDaAPI(turmaNome, alunoIdSelecionado) { // Recebe o ID
     let url = API_URL;
     const isAluno = usuarioCargo === 'ALUNO';
 
@@ -342,7 +345,7 @@ async function carregarAlunosDaAPI(turmaNome) {
         // Professor ou Coordenador (lógica existente)
         url = `${API_URL}?turma=${encodeURIComponent(turmaNome)}`; // Chama: /api/alunos?turma=...
     } else {
-        // Professor ou Coordenador sem turma válida (deve ser tratado no initApp)
+        // Professor ou Coordenador sem turma válida (tratado no initApp)
         listaDeAlunos = [alunoPlaceholder];
         indiceAtual = 0;
         calcularRanking(); 
@@ -356,11 +359,14 @@ async function carregarAlunosDaAPI(turmaNome) {
         const response = await fetch(url); 
         if (!response.ok) throw new Error('Erro ao buscar dados da API');
         
+        // *** NOVO: Define o índice alvo (default é 0) ***
+        let indiceAlvo = 0;
+        
         if (isAluno) {
             const alunoLogado = await response.json();
             // O aluno logado só pode ver a si mesmo.
             listaDeAlunos = [alunoLogado];
-            indiceAtual = 0;
+            // indiceAlvo = 0 (correto para aluno)
             console.log(`Aluno ${alunoLogado.nome} carregado.`);
             // Para o aluno, a turma deve ser a do aluno logado, não a do URL (se houver)
             turmaAtual = alunoLogado.turma; 
@@ -371,20 +377,34 @@ async function carregarAlunosDaAPI(turmaNome) {
             
             if(alunosCarregados.length === 0) {
                  listaDeAlunos = [alunoPlaceholder];
-                 indiceAtual = 0;
-                 calcularRanking(); 
-                 if (!radarChart) inicializarGraficos(); 
-                 renderizarAluno(indiceAtual);
-                 return;
+                 // indiceAlvo = 0 (correto para placeholder)
+            } else {
+                listaDeAlunos = alunosCarregados;
+                
+                // *** NOVO: Procura o ID selecionado ***
+                if (alunoIdSelecionado) {
+                    // Usa '==' para comparar string da URL com número do ID
+                    const foundIndex = listaDeAlunos.findIndex(aluno => aluno.id == alunoIdSelecionado); 
+                    
+                    if (foundIndex !== -1) {
+                        indiceAlvo = foundIndex; // Encontrou o aluno!
+                    }
+                    // Se não encontrar (foundIndex === -1), indiceAlvo permanece 0
+                }
+                // Se alunoIdSelecionado for null, indiceAlvo permanece 0
+                
+                // Adiciona o placeholder (SÓ para Professor/Coordenador)
+                listaDeAlunos.push(alunoPlaceholder);
             }
-            // Adiciona o placeholder (SÓ para Professor/Coordenador)
-            listaDeAlunos = alunosCarregados;
-            listaDeAlunos.push(alunoPlaceholder);
-            indiceAtual = 0; 
         }
+        
+        // *** Define o índice global baseado no alvo encontrado ***
+        indiceAtual = indiceAlvo;
 
         calcularRanking(); 
         if (!radarChart) inicializarGraficos(); 
+        
+        // *** Renderiza o aluno correto (encontrado ou o primeiro) ***
         renderizarAluno(indiceAtual);
 
     } catch (error) {
