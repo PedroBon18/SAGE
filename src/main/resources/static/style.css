@@ -1,73 +1,174 @@
 /* Importa a fonte "tech" */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-/* Estilo do Botão Voltar (para a tela de alunos) */
+/* * =========================================
+ * 1. DEFINIÇÃO DAS VARIÁVEIS DE TEMA
+ * =========================================
+*/
+
+/* --- TEMA PADRÃO (S.A.G.E.) --- */
+:root {
+  --cor-fundo-principal: #0a192f;
+  --cor-fundo-painel: #112240;
+  --cor-fundo-input: #0e2038;
+  --cor-borda-input: #495c80;
+  --cor-borda-divisoria: #1e3c72;
+  
+  --cor-destaque-principal: #64ffda; /* Ciano SAGE */
+  --cor-destaque-secundario: #00ccff; /* Ciano mais azulado (Gráfico) */
+  --cor-destaque-aviso: #f9ff4d;     /* Amarelo (Alerta) */
+  --cor-destaque-aviso-fundo: rgba(249, 255, 77, 0.1);
+  
+  --cor-texto-principal: #ccd6f6;
+  --cor-texto-secundario: #a8b2d1;
+  --cor-texto-cabecalho: #fff;
+  --cor-texto-placeholder: #5a73a8;
+  
+  --cor-perigo: #ff6464;
+  --cor-perigo-fundo: rgba(255, 100, 100, 0.1);
+  --cor-perigo-forte: #c74646;
+  --cor-perigo-forte-fundo: #4a0e0e;
+  
+  --cor-sucesso: #4dff4d;
+
+  --gradiente-media: linear-gradient(90deg, #ff4d4d 0%, #f9ff4d 50%, #4dff4d 100%);
+}
+
+
+/* --- TEMA ESCURO (P&B) --- */
+[data-theme="dark"] {
+  --cor-fundo-principal: #000000;
+  --cor-fundo-painel: #111111;
+  --cor-fundo-input: #1c1c1c;
+  --cor-borda-input: #333333;
+  --cor-borda-divisoria: #222222;
+
+  --cor-destaque-principal: #FFFFFF; /* Branco */
+  --cor-destaque-secundario: #EEEEEE; /* Quase Branco */
+  --cor-destaque-aviso: #FFFFFF;     /* Branco */
+  --cor-destaque-aviso-fundo: rgba(255, 255, 255, 0.1);
+
+  --cor-texto-principal: #FFFFFF;
+  --cor-texto-secundario: #aaaaaa;
+  --cor-texto-cabecalho: #FFFFFF;
+  --cor-texto-placeholder: #555555;
+
+  /* Mantemos o vermelho por questões de acessibilidade (alertas de perigo) */
+  --cor-perigo: #ff6464;
+  --cor-perigo-fundo: rgba(255, 100, 100, 0.1);
+  --cor-perigo-forte: #c74646;
+  --cor-perigo-forte-fundo: #3d0000;
+  
+  --cor-sucesso: #FFFFFF; /* Sucesso é branco */
+
+  --gradiente-media: linear-gradient(90deg, #555 0%, #aaa 50%, #fff 100%);
+}
+
+
+/* * =========================================
+ * 2. NOVOS ESTILOS (SELETOR DE TEMA)
+ * =========================================
+*/
+.header-controls {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 101; /* Acima dos outros botões */
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#theme-switcher {
+    font-family: 'Share Tech Mono', monospace;
+    background-color: var(--cor-fundo-painel);
+    color: var(--cor-destaque-principal);
+    border: 1px solid var(--cor-borda-input);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 14px;
+}
+
+/* Ajuste para o botão logout quando está no header-controls */
+.header-controls .sidebar-button-logout {
+    position: static; /* Remove o 'display: block' e 'width' */
+    width: auto;
+    margin: 0;
+    padding: 8px 12px; /* Consistente com o botão "Voltar" */
+}
+
+
+/* * =========================================
+ * 3. ESTILOS DA APLICAÇÃO (REFATORADOS)
+ * =========================================
+*/
+
+/* --- Botões Fixos (Voltar / Logout) --- */
+
 .back-to-turmas {
     position: fixed;
     top: 15px;
     left: 15px;
     font-family: 'Share Tech Mono', monospace;
     font-size: 16px;
-    color: #64ffda;
+    color: var(--cor-destaque-principal);
     text-decoration: none;
-    background: #112240;
+    background: var(--cor-fundo-painel);
     padding: 8px 12px;
-    border: 1px solid #495c80;
+    border: 1px solid var(--cor-borda-input);
     border-radius: 6px;
     z-index: 100;
     transition: all 0.3s ease;
 }
 .back-to-turmas:hover {
-    border-color: #64ffda;
-    color: #fff;
+    border-color: var(--cor-destaque-principal);
+    color: var(--cor-texto-cabecalho);
 }
 
-/* * NOVO: Estilo para o Botão de Logout (para Alunos no index.html)
- * Adicionado aqui para manter os estilos de botões juntos.
-*/
+/* Estilo padrão do Botão Logout (usado no index.html se NÃO estiver no header) */
 .sidebar-button-logout {
-    display: block; /* Ocupa a própria linha */
-    width: calc(100% - 20px); /* Largura total menos padding (do painel) */
+    display: block;
+    width: calc(100% - 20px);
     padding: 10px;
-    margin: 0 auto 15px auto; /* Centralizado e com margem abaixo */
+    margin: 0 auto 15px auto;
     text-align: center;
     text-decoration: none;
     font-size: 1rem;
-    color: #ff6464; /* Cor de "saída" (vermelho) */
-    background-color: rgba(255, 100, 100, 0.1);
-    border: 1px solid #ff6464;
+    color: var(--cor-perigo);
+    background-color: var(--cor-perigo-fundo);
+    border: 1px solid var(--cor-perigo);
     border-radius: 4px;
     transition: background-color 0.3s ease;
 }
 
 .sidebar-button-logout:hover {
-    background-color: rgba(255, 100, 100, 0.2);
-    color: #ff8282;
+    background-color: rgba(255, 100, 100, 0.2); /* (Derivado) */
+    color: #ff8282; /* (Derivado) */
 }
 
 
 /* --- Configurações Globais --- */
 
 body {
-  font-family: 'Share Tech Mono', monospace; /* Fonte nova */
-  background-color: #0a192f; /* Fundo escuro */
-  color: #a8b2d1; /* Cor de texto clara */
+  font-family: 'Share Tech Mono', monospace;
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-secundario);
   margin: 0;
   padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Garante que o body ocupa a altura total */
-  height: 100vh; /* Mantém a regra original para compatibilidade visual */
-  overflow-x: hidden; /* Previne rolagem horizontal */
+  min-height: 100vh;
+  height: 100vh;
+  overflow-x: hidden;
 }
 
 .container {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr; /* Layout de 3 colunas */
+  grid-template-columns: 1fr 1.5fr 1fr;
   gap: 20px;
-  background: #112240; /* Fundo do painel */
-  border: 2px solid #64ffda; /* Borda "glowing" ciano */
+  background: var(--cor-fundo-painel);
+  border: 2px solid var(--cor-destaque-principal);
   border-radius: 0; 
   padding: 20px; 
   width: 100%; 
@@ -83,11 +184,10 @@ body {
 
 /* --- ESTILOS DO MODAL DE DETALHES (Painel Direito) --- */
 
-/* Estilo para o botão de apagar (Cor vermelha de perigo) */
 .modal-button-delete {
-    background-color: #4a0e0e; /* Vermelho escuro no fundo */
-    color: #c74646; /* Vermelho claro no texto */
-    border: 1px solid #c74646;
+    background-color: var(--cor-perigo-forte-fundo);
+    color: var(--cor-perigo-forte);
+    border: 1px solid var(--cor-perigo-forte);
     padding: 8px 15px;
     border-radius: 4px;
     font-weight: bold;
@@ -98,15 +198,13 @@ body {
 }
 
 .modal-button-delete:hover {
-    background-color: #c74646; /* Inverte as cores ao passar o rato */
-    color: #0a192f; /* Dark Blue (Cor do seu fundo) */
+    background-color: var(--cor-perigo-forte);
+    color: var(--cor-fundo-principal);
 }
 
-/* Garante que os botões de editar e apagar fiquem lado a lado */
 .detalhes-botoes-acao {
     display: flex;
-    gap: 10px; /* Espaço entre os botões */
-    /* margin-left: auto; Empurra os botões para a direita */
+    gap: 10px;
 }
 
 /* --- Painel Central --- */
@@ -114,20 +212,18 @@ body {
   flex-direction: column; 
   justify-content: flex-start; 
   align-items: center;
-  border-left: 2px solid #1e3c72; 
-  border-right: 2px solid #1e3c72;
+  border-left: 2px solid var(--cor-borda-divisoria);
+  border-right: 2px solid var(--cor-borda-divisoria);
   padding: 0 15px;
   gap: 15px; 
 }
 
-/* Estilo para o Contêiner do Gráfico de Linha na Coluna Central */
 .line-chart-container {
     width: 90%; 
     height: 300px; 
     margin-top: 5px; 
 }
 
-/* Linha de navegação (para manter botões e foto na mesma linha) */
 .nav-row {
     display: flex;
     flex-direction: row;
@@ -137,7 +233,7 @@ body {
 }
 
 .photo-frame {
-  border: 3px solid #64ffda; 
+  border: 3px solid var(--cor-destaque-principal);
   clip-path: polygon(
     25% 6.7%, 75% 6.7%, 
     100% 50%, 75% 93.3%, 
@@ -147,9 +243,10 @@ body {
   margin: 0 15px; 
 }
 
+/* *** ALTERAÇÃO AQUI (Tamanho Desktop) *** */
 .photo {
-  width: 150px;
-  height: 150px;
+  width: 140px;  /* Era 150px */
+  height: 140px; /* Era 150px */
   background-size: cover;
   background-position: center;
   clip-path: polygon(
@@ -159,25 +256,32 @@ body {
   );
 }
 
-/* Imagens */
+/* --- Imagens (Padrão) --- */
 .photo.DefaultProfile { background-image: url('img/DefaultProfile.png'); } 
 .photo.AlunoPlaceholder {background-image: url('img/ADD_ALUNO.png');}
 
-/* Torna o frame da foto clicável */
+/* Substituição de Imagens para o Tema Escuro (P&B) */
+[data-theme="dark"] .photo.DefaultProfile { 
+    background-image: url('img/DefaultProfile_P_B.png'); 
+}
+[data-theme="dark"] .photo.AlunoPlaceholder {
+    background-image: url('img/ADD_ALUNO_P_B.png');
+}
+
+
 .photo-frame.clickable:hover {
-  border-color: #f9ff4d; 
+  border-color: var(--cor-destaque-aviso);
   cursor: pointer;
 }
 .photo-frame.clickable:hover .photo {
   opacity: 0.8; 
 }
 
-/* Estilização do Rank */
 #studentRank {
     font-size: 24px;
     font-weight: bold;
-    color: #fff; 
-    background: #64ffda; 
+    color: var(--cor-texto-cabecalho); 
+    background: var(--cor-destaque-principal);
     padding: 8px 20px;
     border-radius: 4px;
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.5); 
@@ -187,10 +291,17 @@ body {
     text-align: center;
 }
 
+/* Estilo especial para Rank P&B para ter contraste */
+[data-theme="dark"] #studentRank {
+    color: var(--cor-fundo-principal); /* Texto preto */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+
 .nav-button {
   background: none;
-  border: 2px solid #64ffda;
-  color: #64ffda;
+  border: 2px solid var(--cor-destaque-principal);
+  color: var(--cor-destaque-principal);
   font-size: 24px;
   font-weight: bold;
   cursor: pointer;
@@ -200,11 +311,14 @@ body {
   transition: all 0.3s ease;
 }
 .nav-button:hover {
-  background: rgba(100, 255, 218, 0.2);
+  background: rgba(100, 255, 218, 0.2); /* (Derivado) */
   transform: scale(1.1);
 }
 
-/* Estilo da Logo Central */
+[data-theme="dark"] .nav-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 .logo-container {
   width: 80%; 
   max-width: 250px; 
@@ -224,14 +338,18 @@ body {
 
 h1#studentName {
   font-size: 28px;
-  color: #ccd6f6;
+  color: var(--cor-texto-principal);
   margin: 10px 0 5px;
   cursor: pointer;
 }
 h1#studentName:focus {
-    outline: 1px dashed #64ffda;
-    background: rgba(100, 255, 218, 0.05);
+    outline: 1px dashed var(--cor-destaque-principal);
+    background: rgba(100, 255, 218, 0.05); /* (Derivado) */
     padding: 0 5px;
+}
+
+[data-theme="dark"] h1#studentName:focus {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 /* Estilo do Seletor de Turma (Se existir) */
@@ -243,22 +361,22 @@ h1#studentName:focus {
     width: 90%;
     margin: 5px auto 10px;
     padding: 10px;
-    background: #0e2038;
-    border: 1px dashed #495c80;
+    background: var(--cor-fundo-input);
+    border: 1px dashed var(--cor-borda-input);
     border-radius: 6px;
 }
 
 .turma-selector-container label {
     font-size: 16px;
-    color: #ccd6f6;
+    color: var(--cor-texto-principal);
 }
 
 .turma-select {
     font-family: 'Share Tech Mono', monospace;
     font-size: 16px;
-    background: #112240;
-    color: #64ffda;
-    border: 1px solid #64ffda;
+    background: var(--cor-fundo-painel);
+    color: var(--cor-destaque-principal);
+    border: 1px solid var(--cor-destaque-principal);
     border-radius: 4px;
     padding: 5px;
 }
@@ -268,29 +386,29 @@ h1#studentName:focus {
     font-size: 14px;
     width: 80px;
     padding: 5px;
-    border: 1px solid #495c80;
-    background: #0e2038;
-    color: #a8b2d1;
+    border: 1px solid var(--cor-borda-input);
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-secundario);
     border-radius: 4px;
     text-align: center;
 }
 .turma-input:focus {
     outline: none;
-    border-color: #64ffda;
+    border-color: var(--cor-destaque-principal);
 }
 
 .student-id-large {
   font-size: 72px; 
   font-weight: bold;
-  color: #64ffda; 
+  color: var(--cor-destaque-principal);
   margin: 10px 0;
 }
 
 /* Barra de Média */
 .average-bar-container {
   width: 90%;
-  background: #0a192f;
-  border: 1px solid #a8b2d1;
+  background: var(--cor-fundo-principal);
+  border: 1px solid var(--cor-texto-secundario);
   border-radius: 5px;
   height: 25px;
   position: relative;
@@ -299,7 +417,7 @@ h1#studentName:focus {
 }
 .average-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ff4d4d 0%, #f9ff4d 50%, #4dff4d 100%);
+  background: var(--gradiente-media);
   border-radius: 4px;
   transition: width 0.5s ease;
   width: 0%; 
@@ -309,15 +427,15 @@ h1#studentName:focus {
   left: 50%; 
   top: 50%;
   transform: translate(-50%, -50%);
-  color: #fff;
+  color: var(--cor-texto-cabecalho);
   font-size: 14px;
   mix-blend-mode: difference; 
 }
 
 /* Anotações, Metas e Feedback (Tema Escuro) */
 .editable-box {
-  background: #0e2038;
-  border: 1px dashed #495c80;
+  background: var(--cor-fundo-input);
+  border: 1px dashed var(--cor-borda-input);
   padding: 10px;
   border-radius: 6px;
   min-height: 60px;
@@ -328,17 +446,17 @@ h1#studentName:focus {
   margin: 0 auto 20px;
   outline: none;
   white-space: pre-wrap;
-  color: #a8b2d1;
+  color: var(--cor-texto-secundario);
 }
 
 .editable-box:focus {
-  background: #112240;
-  border: 1px solid #64ffda;
+  background: var(--cor-fundo-painel);
+  border: 1px solid var(--cor-destaque-principal);
 }
 
 .editable-box:empty:before {
   content: attr(data-placeholder);
-  color: #5a73a8;
+  color: var(--cor-texto-placeholder);
   pointer-events: none;
 }
 
@@ -350,30 +468,30 @@ h1#studentName:focus {
   border-radius: 6px;
   text-align: center;
   font-weight: bold;
-  border: 1px solid #f9ff4d; 
-  color: #f9ff4d;
-  background: rgba(249, 255, 77, 0.1);
+  border: 1px solid var(--cor-destaque-aviso);
+  color: var(--cor-destaque-aviso);
+  background: var(--cor-destaque-aviso-fundo);
 }
 
 /* Classe para esconder o Alerta quando estiver vazio (e não focado) */
 .alert-box:empty:not(:focus) {
     border: 1px dashed transparent;
     background: transparent;
-    color: #a8b2d1;
+    color: var(--cor-texto-secundario);
     text-align: left;
 }
 .alert-box:empty:not(:focus):before {
     content: attr(data-placeholder);
-    color: #5a73a8;
+    color: var(--cor-texto-placeholder);
     text-align: left;
 }
 .alert-box:empty:not(:focus):hover {
-    border: 1px dashed #495c80;
+    border: 1px dashed var(--cor-borda-input);
 }
 
 /* --- Painel Esquerdo --- */
 .chart-placeholder {
-  border: 2px dashed #495c80;
+  border: 2px dashed var(--cor-borda-input);
   border-radius: 8px;
   padding: 10px; 
   text-align: center;
@@ -383,7 +501,7 @@ h1#studentName:focus {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #495c80;
+  color: var(--cor-borda-input);
 }
 .chart-placeholder canvas {
     width: 100% !important;
@@ -431,8 +549,8 @@ h1#studentName:focus {
     padding: 10px;
     margin: 0;
     font-size: 13px;
-    background: #0e2038; /* Fundo igual ao das caixas de anotações */
-    border: 1px dashed #495c80;
+    background: var(--cor-fundo-input);
+    border: 1px dashed var(--cor-borda-input);
     border-radius: 6px;
 }
 
@@ -441,24 +559,23 @@ h1#studentName:focus {
     display: flex;
     align-items: center;
     margin-bottom: 5px;
-    color: #a8b2d1;
+    color: var(--cor-texto-secundario);
 }
 
 #frequencyFilterCheckboxes input,
 #gradesFilterCheckboxes input {
     margin-right: 10px;
-    /* Estilo "tech" para a checkbox */
-    accent-color: #64ffda;
-    background-color: #0a192f;
+    accent-color: var(--cor-destaque-principal);
+    background-color: var(--cor-fundo-principal);
 }
 
 /* Input genérico para notas/faltas */
 .grade-input {
     width: 60px;
     padding: 5px;
-    border: 1px solid #495c80;
-    background: #0e2038;
-    color: #a8b2d1;
+    border: 1px solid var(--cor-borda-input);
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-secundario);
     border-radius: 4px;
     text-align: center;
 }
@@ -474,9 +591,9 @@ h1#studentName:focus {
 #studentAbsencesInput {
   width: 70px;
   padding: 5px;
-  border: 1px solid #495c80;
-  background: #0e2038;
-  color: #a8b2d1;
+  border: 1px solid var(--cor-borda-input);
+  background: var(--cor-fundo-input);
+  color: var(--cor-texto-secundario);
   border-radius: 4px;
   text-align: center;
   font-family: 'Share Tech Mono', monospace; 
@@ -487,16 +604,16 @@ h1#studentName:focus {
 .historical-grades-input {
     width: 90%;
     padding: 10px;
-    border: 1px dashed #495c80;
+    border: 1px dashed var(--cor-borda-input);
     border-radius: 6px;
-    background: #0e2038;
+    background: var(--cor-fundo-input);
     text-align: center;
     margin-bottom: 5px; 
 }
 
 .historical-grades-input h4 {
     margin: 0 0 10px 0;
-    color: #ccd6f6;
+    color: var(--cor-texto-principal);
 }
 
 .historical-grades-input .grades-row {
@@ -510,9 +627,9 @@ h1#studentName:focus {
     width: 50px;
     padding: 3px;
     margin-left: 5px;
-    border: 1px solid #64ffda;
-    background: #112240;
-    color: #a8b2d1;
+    border: 1px solid var(--cor-destaque-principal);
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-secundario);
     border-radius: 4px;
     text-align: center;
     font-family: 'Share Tech Mono', monospace; 
@@ -532,13 +649,19 @@ h1#studentName:focus {
     max-width: 600px;
     width: 90%;
     border-radius: 12px; 
+    /* Sombra derivada, mantida como está */
     box-shadow: 0 0 20px rgba(100, 255, 218, 0.3);
   }
+
+  [data-theme="dark"] .container {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+
   .panel-center {
     border-left: none;
     border-right: none;
-    border-top: 2px solid #1e3c72;
-    border-bottom: 2px solid #1e3c72;
+    border-top: 2px solid var(--cor-borda-divisoria);
+    border-bottom: 2px solid var(--cor-borda-divisoria);
     padding: 20px 15px; 
     flex-direction: column; 
     justify-content: flex-start; 
@@ -566,11 +689,15 @@ h1#studentName:focus {
   .student-id-large {
     font-size: 56px; 
   }
-  .photo-frame,
+  
+  /* *** ALTERAÇÃO AQUI (Tamanho Mobile) *** */
+  /* Remove .photo-frame da regra de tamanho */
   .photo {
-    width: 120px;
-    height: 120px;
+    width: 110px;  /* Era 120px */
+    height: 110px; /* Era 120px */
   }
+  /* (A .photo-frame agora tira o seu tamanho da .photo + padding) */
+  
   .nav-button {
     width: 35px;
     height: 35px;

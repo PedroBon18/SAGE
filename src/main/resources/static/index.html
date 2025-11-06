@@ -10,11 +10,41 @@
  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
  <link rel="shortcut icon" href="img/favicon/favicon.ico" type="image/x-icon">
  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+ <script src="theme.js"></script>
+
+    <style>
+        .header-controls {
+            display: flex;
+            justify-content: center; /* Centraliza o dropdown */
+            width: 100%; /* Ocupa a largura do painel */
+            margin-bottom: 15px; /* Adiciona espaço antes de "Estatísticas" */
+            gap: 10px;
+            align-items: center;
+        }
+
+        #theme-switcher {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--cor-fundo-painel);
+            color: var(--cor-destaque-principal);
+            border: 1px solid var(--cor-borda-input);
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
 
  <div class="panel panel-left">
+
+  <div class="header-controls">
+    <select id="theme-switcher">
+      <option value="sage">Tema Padrão</option>
+      <option value="dark">Tema Escuro (P&B)</option>
+    </select>
+  </div>
+
   <h3>Estatísticas</h3>
   <div class="chart-placeholder" id="pie-chart-placeholder">
    <canvas id="doughnutChart"></canvas>
@@ -64,28 +94,22 @@
  </div>
 
  <div class="panel panel-right">
-  <div class="panel panel-right">
   
   <a href="/logout" id="btn-logout" class="sidebar-button sidebar-button-logout" style="display: none;">
     Sair (Logout)
   </a>
   
-  <h1 id="studentName" contenteditable="true"></h1>
-  <!-- <a href="/logout" class="sidebar-button sidebar-button-logout">Sair (Logout)</a> -->
   <h1 id="studentName" contenteditable="true"></h1> 
   <div class="student-id-large">
    <span id="studentID"></span>
   </div>
   <div class="student-id-large" style="margin-top: 5px;">
     <span id="alunoTurma"></span> 
-</div>
+  </div>
 
-<div class="detalhes-botoes-acao">
-   <!-- <button id="detalhes-btn-editar" class="modal-button">Editar</button> -->
+  <div class="detalhes-botoes-acao">
    <button id="detalhes-btn-apagar" class="modal-button-delete">Apagar Aluno</button>
-
-   
- </div>
+  </div>
   
   <h3>Média Geral</h3>
   <div class="average-bar-container">
