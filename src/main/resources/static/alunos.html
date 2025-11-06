@@ -4,24 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S.A.G.E. - Alunos da Turma</title>
-    <link rel="shortcut icon" href="img/favicon/favicon.ico" type="image/x-icon">
+    
     <link rel="stylesheet" href="style.css">
     
     <style>
-        /* Estes estilos podem estar no seu 'style.css' principal,
-          mas estão aqui para garantir que a página funcione.
+        /* Adiciona um padding ao topo do body para dar espaço 
+         para os botões "Voltar" e "Sair" 
         */
         body {
-            background-color: #0a192f;
-            color: #ccd6f6;
-            font-family: 'Share Tech Mono', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+            padding-top: 60px; 
         }
+
         .container-principal {
             width: 90%;
             max-width: 1200px;
@@ -36,30 +29,25 @@
             padding-bottom: 10px;
         }
 
-        /* Grid para os Alunos (similar ao de turmas) */
+        /* Grid para os Alunos */
         #aluno-grid {
             display: grid;
-            /* Aumentei o minmax para 240px para caber os inputs */
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
             gap: 20px;
-            padding: 20px 0; /* Adiciona padding vertical */
+            padding: 20px 0;
         }
         
-        /* ESTILOS NOVOS PARA EDIÇÃO NA LISTA
-        */
-
-        /* Ajusta o card para comportar os novos campos */
+        /* Card do Aluno */
         .aluno-card {
             background-color: #112240;
             border-radius: 8px;
             border: 1px solid #1d2d50;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
-            
             display: flex;
-            flex-direction: column; /* Organiza o link e os inputs verticalmente */
+            flex-direction: column;
             align-items: stretch;
-            padding: 15px; /* Padding interno do card */
+            padding: 15px;
         }
         .aluno-card:hover {
             transform: translateY(-5px);
@@ -71,14 +59,14 @@
         .aluno-link {
             display: block;
             width: 100%;
-            padding: 10px 10px 15px 10px; /* Padding do link */
+            padding: 10px 10px 15px 10px;
             text-align: center;
             text-decoration: none;
             color: #ccd6f6;
             font-size: 1.15rem;
             font-weight: bold;
-            border-bottom: 1px solid #1d2d50; /* Linha divisória */
-            margin-bottom: 15px; /* Espaço entre o link e os inputs */
+            border-bottom: 1px solid #1d2d50;
+            margin-bottom: 15px;
         }
          .aluno-link:hover {
             color: #64ffda;
@@ -88,20 +76,18 @@
         .card-edit-container {
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Espaço entre "Nota" e "Faltas" */
-            padding: 0 10px 10px 10px; /* Padding dos inputs */
+            gap: 10px;
+            padding: 0 10px 10px 10px;
         }
-
         .card-edit-container label {
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 0.9rem;
-            color: #a8b2d1; /* Cor mais suave */
+            color: #a8b2d1;
         }
-
         .card-edit-container input[type="number"] {
-            width: 60px; /* Tamanho fixo para o input */
+            width: 60px;
             background-color: #0a192f;
             border: 1px solid #1d2d50;
             color: #ccd6f6;
@@ -121,28 +107,32 @@
             border-radius: 4px;
         }
 
-        /* Estilos para as mensagens de erro/sucesso do alunos.js */
-        .error-message { 
-            background-color: rgba(255, 100, 100, 0.1); 
-            border: 1px solid #ff6464; 
-            color: #ff6464; 
-            padding: 10px; 
-            border-radius: 4px; 
-            margin-bottom: 15px; 
-            font-size: 14px; 
-        }
-        .success-message { 
-            background-color: rgba(100, 255, 218, 0.1); 
-            border: 1px solid #64ffda; 
-            color: #64ffda; 
-            padding: 10px; 
-            border-radius: 4px; 
-            margin-bottom: 15px; 
-            font-size: 14px; 
+        /* NOVO: Estilo para o botão de Logout nesta página.
+          Posiciona-o no canto superior direito.
+        */
+        #btn-logout-alunos {
+            position: fixed; /* Fixa no ecrã */
+            top: 15px;
+            right: 15px; /* Alinha à direita */
+            z-index: 100;
+            
+            /* Ajustes para sobrescrever o estilo de sidebar */
+            width: auto; 
+            margin: 0; 
+            padding: 8px 12px; /* Consistente com o botão "Voltar" */
         }
     </style>
 </head>
 <body>
+
+    <a href="/logout" id="btn-logout-alunos" class="sidebar-button sidebar-button-logout">
+        Sair (Logout)
+    </a>
+
+    <a href="/turmas.html" class="back-to-turmas">
+        &lt; Voltar
+    </a>
+
     <div class="container-principal">
         <h1 id="titulo-pagina">Selecione um Aluno</h1>
         

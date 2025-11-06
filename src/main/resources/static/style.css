@@ -1,7 +1,7 @@
 /* Importa a fonte "tech" */
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-/* Estilo do Botão Voltar */
+/* Estilo do Botão Voltar (para a tela de alunos) */
 .back-to-turmas {
     position: fixed;
     top: 15px;
@@ -22,6 +22,32 @@
     color: #fff;
 }
 
+/* * NOVO: Estilo para o Botão de Logout (para Alunos no index.html)
+ * Adicionado aqui para manter os estilos de botões juntos.
+*/
+.sidebar-button-logout {
+    display: block; /* Ocupa a própria linha */
+    width: calc(100% - 20px); /* Largura total menos padding (do painel) */
+    padding: 10px;
+    margin: 0 auto 15px auto; /* Centralizado e com margem abaixo */
+    text-align: center;
+    text-decoration: none;
+    font-size: 1rem;
+    color: #ff6464; /* Cor de "saída" (vermelho) */
+    background-color: rgba(255, 100, 100, 0.1);
+    border: 1px solid #ff6464;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-button-logout:hover {
+    background-color: rgba(255, 100, 100, 0.2);
+    color: #ff8282;
+}
+
+
+/* --- Configurações Globais --- */
+
 body {
   font-family: 'Share Tech Mono', monospace; /* Fonte nova */
   background-color: #0a192f; /* Fundo escuro */
@@ -33,7 +59,7 @@ body {
   align-items: center;
   min-height: 100vh; /* Garante que o body ocupa a altura total */
   height: 100vh; /* Mantém a regra original para compatibilidade visual */
-  overflow-x: hidden; /* NOVO: Previne rolagem horizontal */
+  overflow-x: hidden; /* Previne rolagem horizontal */
 }
 
 .container {
@@ -55,7 +81,7 @@ body {
   align-items: center;
 }
 
-/* --- ESTILOS DO MODAL DE DETALHES --- */
+/* --- ESTILOS DO MODAL DE DETALHES (Painel Direito) --- */
 
 /* Estilo para o botão de apagar (Cor vermelha de perigo) */
 .modal-button-delete {
@@ -208,7 +234,7 @@ h1#studentName:focus {
     padding: 0 5px;
 }
 
-/* --- NOVO: Estilo do Seletor de Turma --- */
+/* Estilo do Seletor de Turma (Se existir) */
 .turma-selector-container {
     display: flex;
     align-items: center;
@@ -426,8 +452,7 @@ h1#studentName:focus {
     background-color: #0a192f;
 }
 
-
-
+/* Input genérico para notas/faltas */
 .grade-input {
     width: 60px;
     padding: 5px;

@@ -60,6 +60,10 @@ const rankElemento = document.getElementById('studentRank');
 const photoFrameElement = document.getElementById('photoFrame'); 
 const fileInputElement = document.getElementById('fileInput'); 
 
+// --- Seletor do Botão de Logout ---
+const btnLogout = document.getElementById('btn-logout');
+// -----------------------------------------
+
 // --- Seletores de Filtros ---
 const freqFilterContainer = document.getElementById('frequencyFilterContainer');
 const freqFilterCheckboxes = document.getElementById('frequencyFilterCheckboxes');
@@ -114,7 +118,7 @@ async function handleApagarAluno(alunoId, nomeAluno) {
             }
             
             // 4. Recarrega a lista de alunos da turma atual (para refletir a eliminação)
-            // *** MODIFICAÇÃO: Passa null como ID selecionado para recarregar no primeiro ***
+            // (Passa null como ID selecionado para recarregar no primeiro)
             carregarAlunosDaAPI(turmaAtual, null); 
 
         } else if (response.status === 403) {
@@ -130,19 +134,19 @@ async function handleApagarAluno(alunoId, nomeAluno) {
 // ---------------------------------
 
 
-// 1. Função de inicialização (*** ATUALIZADA ***)
+// 1. Função de inicialização (Lendo turma E alunoId)
 async function initApp() {
     // Pega os parâmetros do URL
     const params = new URLSearchParams(window.location.search);
     turmaAtual = params.get('turma');
     
-    // *** NOVO: Pega o ID do aluno selecionado ***
+    // Pega o ID do aluno selecionado
     const alunoIdSelecionado = params.get('alunoId'); // Ex: "123"
 
     if (!turmaAtual) {
-        // Se nenhuma turma foi passada, volta para a tela de seleção
-        // (A lógica de ALUNO logado é tratada em buscarDadosUsuario)
-        await buscarDadosUsuario(alunoIdSelecionado); // Passa o ID (provavelmente null, mas seguro)
+        // Se nenhuma turma foi passada, tenta buscar o usuário mesmo assim
+        // (necessário para o fluxo do ALUNO)
+        await buscarDadosUsuario(alunoIdSelecionado); // Passa o ID
     } else {
         // Define o placeholder para já ter a turma correta
         alunoPlaceholder.turma = turmaAtual;
@@ -151,7 +155,7 @@ async function initApp() {
 }
 
 
-// 2. Busca os dados (Cargo e Matéria) do usuário logado (*** ATUALIZADA ***)
+// 2. Busca os dados (Cargo e Matéria) do usuário logado
 async function buscarDadosUsuario(alunoIdSelecionado) { // Recebe o ID
     try {
         const response = await fetch('/api/usuario/info'); 
@@ -213,10 +217,7 @@ async function handleCriarNovoAluno() {
         notas: { 'Matemática': 0, 'Português': 0, 'História': 0, 'Geografia': 0, 'Inglês': 0, 'Ciências': 0 },
         faltasPorMateria: { 'Matemática': 0, 'Português': 0, 'História': 0, 'Geografia': 0, 'Inglês': 0, 'Ciências': 0 },
         
-        // --- (INÍCIO) CORREÇÃO PARA NOVOS ALUNOS ---
-        // Garante que o novo aluno usa os totais de 100 (para o limite do input)
         aulasTotaisPorMateria: alunoPlaceholder.aulasTotaisPorMateria,
-        // --- (FIM) CORREÇÃO PARA NOVOS ALUNOS ---
 
         anotacao: '', metas: '', feedback: '', alerta: '',
         classeFoto: 'DefaultProfile', 
@@ -231,14 +232,12 @@ async function handleCriarNovoAluno() {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            credentials: 'same-origin', // Usa cookies da mesma origem
+            credentials: 'same-origin',
             body: JSON.stringify(novoAlunoPadrao),
         });
 
-        // Log detalhado da resposta
         console.log(`Status da resposta: ${response.status} ${response.statusText}`);
         
-        // Primeiro verifica se é uma resposta HTML (redirecionamento)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('text/html')) {
             console.log('Recebeu HTML em vez de JSON - provavelmente deslogado');
@@ -249,11 +248,9 @@ async function handleCriarNovoAluno() {
         if (!response.ok) {
             let errorMessage = `Erro ${response.status}`;
             try {
-                // Tenta parsear como JSON primeiro
                 const errorData = await response.json();
                 errorMessage = errorData.message || errorData.error || errorMessage;
             } catch {
-                // Se não for JSON, tenta ler como texto
                 const text = await response.text();
                 errorMessage = text || errorMessage;
             }
@@ -273,26 +270,21 @@ async function handleCriarNovoAluno() {
         const alunoSalvo = await response.json(); 
         console.log("Aluno salvo no BD:", alunoSalvo);
 
-        // Substitui o placeholder existente (se encontrado) por segurança
         const placeholderIndex = listaDeAlunos.findIndex(a => a.matricula === '????');
         if (placeholderIndex !== -1) {
             listaDeAlunos[placeholderIndex] = alunoSalvo;
         } else {
-            // Se não houver placeholder, adiciona o novo aluno no final
             listaDeAlunos.push(alunoSalvo);
         }
 
-        // Garante que sempre há um placeholder no final da lista
         if (!listaDeAlunos.some(a => a.matricula === '????')) {
             listaDeAlunos.push(alunoPlaceholder);
         }
 
-        // Ajusta índice para o aluno recém-criado e re-renderiza
         indiceAtual = listaDeAlunos.findIndex(a => a.id === alunoSalvo.id);
         if (indiceAtual === -1) indiceAtual = 0;
         renderizarAluno(indiceAtual);
 
-        // Foca e seleciona o nome usando APIs modernas (para contentEditable)
         nomeAlunoElemento.focus();
         try {
             const range = document.createRange();
@@ -301,7 +293,6 @@ async function handleCriarNovoAluno() {
             sel.removeAllRanges();
             sel.addRange(range);
         } catch (e) {
-            // Fallback antigo
             document.execCommand && document.execCommand('selectAll', false, null);
         }
 
@@ -333,19 +324,17 @@ async function salvarAtualizacoesAluno(aluno) {
 }
 
 
-// 5. Função para carregar dados da API (*** ATUALIZADA ***)
+// 5. Função para carregar dados da API (Lógica de ID de Aluno)
 async function carregarAlunosDaAPI(turmaNome, alunoIdSelecionado) { // Recebe o ID
     let url = API_URL;
     const isAluno = usuarioCargo === 'ALUNO';
 
-    // --- NOVO: Lógica de Aluno Logado ---
     if (isAluno) {
         url = `${API_URL}/me`; // Chama: /api/alunos/me
     } else if (turmaNome) {
-        // Professor ou Coordenador (lógica existente)
         url = `${API_URL}?turma=${encodeURIComponent(turmaNome)}`; // Chama: /api/alunos?turma=...
     } else {
-        // Professor ou Coordenador sem turma válida (tratado no initApp)
+        // Professor/Coordenador sem turma válida (tratado no initApp)
         listaDeAlunos = [alunoPlaceholder];
         indiceAtual = 0;
         calcularRanking(); 
@@ -353,26 +342,22 @@ async function carregarAlunosDaAPI(turmaNome, alunoIdSelecionado) { // Recebe o 
         renderizarAluno(indiceAtual);
         return;
     }
-    // ------------------------------------
     
     try {
         const response = await fetch(url); 
         if (!response.ok) throw new Error('Erro ao buscar dados da API');
         
-        // *** NOVO: Define o índice alvo (default é 0) ***
         let indiceAlvo = 0;
         
         if (isAluno) {
             const alunoLogado = await response.json();
-            // O aluno logado só pode ver a si mesmo.
             listaDeAlunos = [alunoLogado];
             // indiceAlvo = 0 (correto para aluno)
             console.log(`Aluno ${alunoLogado.nome} carregado.`);
-            // Para o aluno, a turma deve ser a do aluno logado, não a do URL (se houver)
             turmaAtual = alunoLogado.turma; 
 
         } else {
-            // Professor/Coordenador (lógica existente)
+            // Professor/Coordenador
             let alunosCarregados = await response.json(); 
             
             if(alunosCarregados.length === 0) {
@@ -381,7 +366,7 @@ async function carregarAlunosDaAPI(turmaNome, alunoIdSelecionado) { // Recebe o 
             } else {
                 listaDeAlunos = alunosCarregados;
                 
-                // *** NOVO: Procura o ID selecionado ***
+                // Procura o ID selecionado vindo do URL
                 if (alunoIdSelecionado) {
                     // Usa '==' para comparar string da URL com número do ID
                     const foundIndex = listaDeAlunos.findIndex(aluno => aluno.id == alunoIdSelecionado); 
@@ -389,27 +374,23 @@ async function carregarAlunosDaAPI(turmaNome, alunoIdSelecionado) { // Recebe o 
                     if (foundIndex !== -1) {
                         indiceAlvo = foundIndex; // Encontrou o aluno!
                     }
-                    // Se não encontrar (foundIndex === -1), indiceAlvo permanece 0
+                    // Se não encontrar, indiceAlvo permanece 0
                 }
-                // Se alunoIdSelecionado for null, indiceAlvo permanece 0
                 
-                // Adiciona o placeholder (SÓ para Professor/Coordenador)
+                // Adiciona o placeholder
                 listaDeAlunos.push(alunoPlaceholder);
             }
         }
         
-        // *** Define o índice global baseado no alvo encontrado ***
         indiceAtual = indiceAlvo;
 
         calcularRanking(); 
         if (!radarChart) inicializarGraficos(); 
         
-        // *** Renderiza o aluno correto (encontrado ou o primeiro) ***
         renderizarAluno(indiceAtual);
 
     } catch (error) {
         console.error('Falha ao carregar alunos:', error);
-        // NOVO: Mensagem de erro para aluno/turma não encontrado
         if (isAluno) {
             alert("Não foi possível carregar os seus dados. Verifique a sua matrícula.");
         }
@@ -419,7 +400,7 @@ async function carregarAlunosDaAPI(turmaNome, alunoIdSelecionado) { // Recebe o 
 
 // -------------------------------
 
-// Funções de Ranking e Gráficos (Mantidas)
+// Funções de Ranking e Gráficos
 function calcularRanking() {
     const alunosReais = listaDeAlunos.filter(a => a.matricula !== '????');
     const alunosOrdenados = [...alunosReais].sort((a, b) => b.media - a.media);
@@ -430,7 +411,6 @@ function calcularRanking() {
     if (placeholder) placeholder.rank = 'N/A';
 }
 
-// --- CONFIGURAÇÃO DO GRÁFICO RADAR (HEXAGONAL) ---
 const radarConfig = { 
     type: 'radar',
     data: { 
@@ -438,8 +418,8 @@ const radarConfig = {
         datasets: [{ 
             label: 'Notas', 
             data: [], 
-            backgroundColor: 'rgba(100, 255, 218, 0.2)', // Cor ciano SAGE
-            borderColor: '#00ccff', // Cor ciano SAGE
+            backgroundColor: 'rgba(100, 255, 218, 0.2)', 
+            borderColor: '#00ccff', 
             pointBackgroundColor: '#00ccff', 
             pointBorderColor: '#fff', 
             pointHoverBackgroundColor: '#fff', 
@@ -463,7 +443,7 @@ const radarConfig = {
                 }, 
                 grid: { 
                     color: 'rgba(173, 216, 230, 0.3)', 
-                    circular: false // <-- CRIA O HEXÁGONO
+                    circular: false 
                 }, 
                 pointLabels: { 
                     color: '#ccd6f6', 
@@ -482,7 +462,6 @@ const radarConfig = {
         } 
     } 
 };
-// --- FIM DA CONFIGURAÇÃO DO GRÁFICO ---
 
 const doughnutConfig = { type: 'doughnut', data: { labels: ['Presença (%)', 'Faltas (%)'], datasets: [{ data: [], backgroundColor: [ '#64ffda', '#ff4d4d' ], hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#a8b2d1' } } }, cutout: '80%', } };
 const lineConfig = { type: 'line', data: { labels: periodos, datasets: [{ label: 'Média Geral', data: [], borderColor: '#64ffda', backgroundColor: 'rgba(100, 255, 218, 0.1)', borderWidth: 2, tension: 0.4, pointRadius: 6, pointBackgroundColor: '#fff', fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Evolução da Média Geral', color: '#ccd6f6', font: { size: 16 } } }, scales: { y: { min: 0, max: 10, ticks: { color: '#a8b2d1', stepSize: 2 }, grid: { color: '#1e3c72' } }, x: { ticks: { color: '#a8b2d1' }, grid: { display: false } } } } };
@@ -493,16 +472,7 @@ function inicializarGraficos() {
     if (lineCtx && !lineChart) lineChart = new Chart(lineCtx, lineConfig);
 }
 
-
-// --- (INÍCIO) CÓDIGO DO FILTRO (LÓGICA INVERTIDA) ---
-/**
- * Aplica os filtros selecionados (checkboxes) a uma lista de itens (li).
- * ESTA VERSÃO ESCONDE AS MATÉRIAS SELECIONADAS.
- * @param {HTMLElement} listaCheckboxesElemento O <ul> que contém as checkboxes (ex: gradesFilterCheckboxes)
- * @param {HTMLElement} listaItensElemento O <ul> que contém os itens a filtrar (ex: gradesList)
- */
 function aplicarFiltros(listaCheckboxesElemento, listaItensElemento) {
-    // 1. Encontra as matérias que estão selecionadas (checked)
     const materiasSelecionadas = new Set();
     const checkboxes = listaCheckboxesElemento.querySelectorAll('input[type="checkbox"]:checked');
     
@@ -510,19 +480,16 @@ function aplicarFiltros(listaCheckboxesElemento, listaItensElemento) {
         materiasSelecionadas.add(cb.value);
     });
 
-    // 2. Itera pela lista e ESCONDE os selecionados, MOSTRA os não selecionados
     listaItensElemento.querySelectorAll('li').forEach(item => {
         const materiaDoItem = item.getAttribute('data-materia');
         
         if (materiasSelecionadas.has(materiaDoItem)) {
-            item.style.display = 'none'; // <-- ESCONDE se estiver selecionado
+            item.style.display = 'none'; 
         } else {
-            item.style.display = ''; // <-- MOSTRA se NÃO estiver selecionado
+            item.style.display = ''; 
         }
     });
 }
-// --- (FIM) CÓDIGO DO FILTRO (LÓGICA INVERTIDA) ---
-
 
 function atualizarGraficoRadar(notas) {
     if (!radarChart) return;
@@ -533,40 +500,32 @@ function atualizarGraficoRadar(notas) {
     radarChart.update();
 }
 
-// --- (INÍCIO) CORREÇÃO FINAL DO GRÁFICO DE FALTAS (LÓGICA DE 100%) ---
-function atualizarGraficoRosca(faltasPorMateria) { // Removido aulasTotaisPorMateria
+function atualizarGraficoRosca(faltasPorMateria) { 
     if (!doughnutChart) return;
 
     let totalFaltas = 0;
-    const totalAulasBruto = 100; // O "pool" total de presença é 100.
+    const totalAulasBruto = 100; 
 
-    // 1. Calcula o Total de Faltas (somando todas as matérias)
     if (faltasPorMateria) {
-        // Usamos MATERIAS_PADRAO para garantir a soma correta
         MATERIAS_PADRAO.forEach(materia => {
              totalFaltas += (faltasPorMateria[materia] || 0);
         });
     }
     
-    // 2. Garante que as faltas não passem do total
     if (totalFaltas > totalAulasBruto) {
         totalFaltas = totalAulasBruto;
     }
 
-    // 3. Cálculo Normal
     const totalPresente = Math.max(0, totalAulasBruto - totalFaltas);
     
-    // Passa os valores brutos (ex: 90 presentes, 10 faltas)
-    // O Chart.js calcula a % automaticamente
     doughnutChart.data.datasets[0].data = [totalPresente, totalFaltas];
     doughnutChart.update();
 }
-// --- (FIM) CORREÇÃO FINAL DO GRÁFICO DE FALTAS ---
 
 function atualizarGraficoLinha(historicoMedia) { if (lineChart) { lineChart.data.datasets[0].data = historicoMedia; lineChart.update(); } }
 function atualizarMedia(aluno) { let soma = 0, quant = 0; const notas = aluno.notas || {}; for (let mat in notas) { soma += notas[mat]; quant++; } const media = (quant > 0) ? Math.min(soma / quant, 10).toFixed(2) : 0; aluno.media = parseFloat(media); mediaAlunoElemento.textContent = media; mediaBarElemento.style.width = (media * 10) + '%'; calcularRanking(); rankElemento.textContent = `Rank ${aluno.rank}`; atualizarGraficoRadar(aluno.notas); }
 
-// --- Função principal de renderização (COM REGRAS DO ALUNO) ---
+// --- Função principal de renderização (COM REGRAS DO ALUNO e LOGOUT) ---
 function renderizarAluno(indice) {
     calcularRanking(); 
     const aluno = listaDeAlunos[indice];
@@ -594,7 +553,7 @@ function renderizarAluno(indice) {
 
     // Gráficos
     atualizarGraficoRadar(aluno.notas || {}); 
-    atualizarGraficoRosca(aluno.faltasPorMateria || {}); // Chamada atualizada
+    atualizarGraficoRosca(aluno.faltasPorMateria || {}); 
     atualizarGraficoLinha(aluno.historicoMedia || [0, 0, 0]); 
 
     // Popula Trimestre
@@ -619,12 +578,17 @@ function renderizarAluno(indice) {
     // ----------------------------
     
 
-    // --- LÓGICA DE CONTROLO DO ALUNO (MOSTRAR FOTO) ---
+    // --- LÓGICA DE CONTROLO DO ALUNO (E BOTÃO LOGOUT) ---
     const navRow = document.querySelector('.nav-row');
     const prevButton = document.getElementById('prev');
     const nextButton = document.getElementById('next');
     const btnApagar = document.getElementById('detalhes-btn-apagar');
-    const btnSalvar = document.getElementById('saveButton'); 
+    // const btnSalvar = document.getElementById('saveButton'); // Este ID não parece existir no HTML
+
+    // --- (ALTERAÇÃO) MOSTRA O BOTÃO DE LOGOUT PARA TODOS OS UTILIZADORES ---
+    // (A linha foi movida para aqui, fora das condições)
+    if (btnLogout) btnLogout.style.display = 'block';
+    // -----------------------------------------------------------------
     
     if (isAluno) {
         // Mostra a nav-row (para ver a foto), mas esconde os botões de navegação
@@ -634,10 +598,12 @@ function renderizarAluno(indice) {
 
         // Aluno não pode apagar/salvar
         if (btnApagar) btnApagar.style.display = 'none';
-        if (btnSalvar) btnSalvar.style.display = 'none'; 
+        // if (btnSalvar) btnSalvar.style.display = 'none'; 
         
         // Impede o clique na foto
         photoFrameElement.classList.remove('clickable'); 
+
+        // (Linha de mostrar o logout foi removida daqui)
 
     } else {
         // Professor/Coordenador (lógica normal)
@@ -645,25 +611,24 @@ function renderizarAluno(indice) {
         if (prevButton) prevButton.style.display = ''; 
         if (nextButton) nextButton.style.display = ''; 
 
-        if (btnSalvar) btnSalvar.style.display = 'block';
+        // if (btnSalvar) btnSalvar.style.display = 'block';
         if (btnApagar) btnApagar.style.display = ehPlaceholder ? 'none' : 'block';
         photoFrameElement.classList.add('clickable'); 
+        
+        // (Linha de esconder o logout foi removida daqui)
     }
     // --- FIM DA LÓGICA DE CONTROLO DO ALUNO ---
 
 
     // --- LÓGICA PARA ESCONDER ANOTAÇÕES DO ALUNO ---
-    // Pega o <h3>Anotações</h3> (que é o elemento irmão anterior ao div #notes)
     const h3Anotacoes = anotacoesElemento.previousElementSibling; 
     
     if (isAluno) {
-        // Esconde o título (H3) e a caixa (DIV)
         if (h3Anotacoes && h3Anotacoes.tagName === 'H3') {
              h3Anotacoes.style.display = 'none';
         }
         anotacoesElemento.style.display = 'none';
     } else {
-        // Garante que professores/coordenadores vejam
         if (h3Anotacoes && h3Anotacoes.tagName === 'H3') {
              h3Anotacoes.style.display = 'block';
         }
@@ -676,16 +641,12 @@ function renderizarAluno(indice) {
     const notasMap = aluno.notas || {};
     const faltasMap = aluno.faltasPorMateria || {};
     
-    // --- ATUALIZAÇÃO DA LÓGICA DE AULAS TOTAIS ---
-    // Garante que o aulasMap local tem os valores corretos (do aluno ou do placeholder)
     const aulasMap = (aluno.aulasTotaisPorMateria && Object.keys(aluno.aulasTotaisPorMateria).length > 0)
                      ? aluno.aulasTotaisPorMateria
                      : alunoPlaceholder.aulasTotaisPorMateria;
-    // ---------------------------------------------
 
     MATERIAS_PADRAO.forEach((materia) => {
         
-        // --- (INÍCIO) CÓDIGO DO FILTRO DE NOTAS ADICIONADO ---
         if (!ehPlaceholder && !isAluno) {
             gradesFilterContainer.style.display = 'block'; 
             
@@ -707,7 +668,6 @@ function renderizarAluno(indice) {
             filtroLi.appendChild(filtroLabel);
             gradesFilterCheckboxes.appendChild(filtroLi);
         }
-        // --- (FIM) CÓDIGO DO FILTRO DE NOTAS ---
 
         const itemLista = document.createElement('li');
         itemLista.setAttribute('data-materia', materia); 
@@ -749,7 +709,6 @@ function renderizarAluno(indice) {
 
         if (!deveMostrarFalta) return;
 
-        // --- (INÍCIO) CÓDIGO DO FILTRO DE FREQUÊNCIA ADICIONADO ---
         if (isCoordenador && !ehPlaceholder && !isAluno) {
             freqFilterContainer.style.display = 'block'; 
             
@@ -771,7 +730,6 @@ function renderizarAluno(indice) {
             filtroLi.appendChild(filtroLabel);
             freqFilterCheckboxes.appendChild(filtroLi);
         }
-        // --- (FIM) CÓDIGO DO FILTRO DE FREQUÊNCIA ---
 
         const itemLista = document.createElement('li');
         itemLista.setAttribute('data-materia', materia); 
@@ -782,10 +740,7 @@ function renderizarAluno(indice) {
         inputFalta.type = 'number';
         inputFalta.min = 0;
         
-        // --- (INÍCIO) CORREÇÃO DO LIMITE DO INPUT PARA 100 ---
-        // Usa o 'aulasMap' (que tem os defaults de 100) para definir o max
-        const maxAulas = (aulasMap && aulasMap[materia] !== undefined) ? aulasMap[materia] : 100; // Fallback para 100
-        // --- (FIM) CORREÇÃO DO LIMITE DO INPUT ---
+        const maxAulas = (aulasMap && aulasMap[materia] !== undefined) ? aulasMap[materia] : 100;
         
         inputFalta.max = maxAulas;
         inputFalta.value = (faltasMap && faltasMap[materia] !== undefined) ? faltasMap[materia] : 0; 
@@ -802,13 +757,11 @@ function renderizarAluno(indice) {
                     if (novoValor < 0 || isNaN(novoValor)) novoValor = 0;
                     inputFalta.value = novoValor;
                     
-                    // Garante que o mapa existe antes de salvar
                     if (!aluno.faltasPorMateria) aluno.faltasPorMateria = {};
                     
                     aluno.faltasPorMateria[materia] = novoValor;
                     
-                    // Passa o 'aulasMap' corrigido para o gráfico
-                    atualizarGraficoRosca(aluno.faltasPorMateria); // Chamada atualizada
+                    atualizarGraficoRosca(aluno.faltasPorMateria); 
                     salvarAtualizacoesAluno(aluno); 
                 });
             }
@@ -818,7 +771,7 @@ function renderizarAluno(indice) {
             listaFrequenciaElemento.appendChild(itemLista);
     });
 
-    // Popula campos gerais (Anotações serão escondidas pelo CSS, mas ainda populamos para P/C)
+    // Popula campos gerais
     anotacoesElemento.textContent = aluno.anotacao || '';
     metasElemento.textContent = aluno.metas || '';
     feedbackElemento.textContent = aluno.feedback || '';
@@ -846,7 +799,7 @@ function renderizarAluno(indice) {
 // --- FIM DO RENDERIZAR ---
 
 
-// --- Event Listeners (Mantidas, mas adaptadas para não salvar se for aluno) ---
+// --- Event Listeners ---
 function handleHistoricalGradeChange(inputElement, trimestreIndex) {
     const aluno = listaDeAlunos[indiceAtual];
     if (!aluno || aluno.matricula === '????' || usuarioCargo === 'ALUNO') return; 
@@ -888,7 +841,6 @@ function addBlurSaveListener(element, property) {
         }
     });
 }
-// --- LIGAÇÃO DOS LISTENERS DE SALVAMENTO DE CAMPOS DE TEXTO ---
 addBlurSaveListener(nomeAlunoElemento, 'nome');
 addBlurSaveListener(anotacoesElemento, 'anotacao');
 addBlurSaveListener(alertaElemento, 'alerta');
@@ -910,8 +862,6 @@ document.getElementById('next').addEventListener('click', () => {
     indiceAtual = (indiceAtual + 1) % listaDeAlunos.length;
     renderizarAluno(indiceAtual);
 });
-
-// Event listener do seletor de turma 
 
 photoFrameElement.addEventListener('click', () => {
     console.log('photoFrame click', { usuarioCargo, turmaAtual, indiceAtual });
@@ -942,7 +892,6 @@ fileInputElement.addEventListener('change', (event) => {
     reader.readAsDataURL(file);
 });
 
-// --- Event Listener para o botão de apagar no Modal de Detalhes ---
 const btnApagarDetalhes = document.getElementById('detalhes-btn-apagar');
 if (btnApagarDetalhes) {
     btnApagarDetalhes.addEventListener('click', () => {
@@ -954,5 +903,5 @@ if (btnApagarDetalhes) {
     });
 }
 
-// --- ATUALIZADO: Inicializa a aplicação ---
+// --- Inicializa a aplicação ---
 initApp();
